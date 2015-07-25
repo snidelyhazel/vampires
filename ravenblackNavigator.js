@@ -6,6 +6,7 @@ title.style.display="none";
 title.nextElementSibling.style.display="none";
 
 
+
 //Remove footer with biterlink.
 var textInfo = document.getElementsByClassName("spacey");
 var footer = textInfo[textInfo.length-1];
@@ -44,58 +45,37 @@ footer.parentElement.appendChild(header);
 
 
 
-//Record warMode selection with cookies.
 
-//Call to create or update a cookie with a value.
-function setCookie(name, value)
+
+//Set warMode localStorage.
+function updateWarModeStorage(event)
 {
-	var d = new Date();
-	d.setTime(d.getTime() + (10 * 365 * 24 * 60 * 60 * 1000));
-	document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/";
+	localStorage.setItem("warMode", event.target.checked ? 1 : 0);
 }
 
-//Call to retrieve cookie value.
-function getCookie(name)
+//Set vampInfo localStorage.
+function updateVampInfoStorage(event)
 {
-	name = name + "=";
-	var ca = document.cookie.split(';');
-	for (var i = 0; i < ca.length; i++) {
-		var c = ca[i];
-		while (c.charAt(0) == ' ') c = c.substring(1);
-		if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
-	}
-	return "";
+	localStorage.setItem("vampInfo", event.target.checked ? 1 : 0);
 }
 
-//Set warMode cookie.
-function updateWarModeCookie(event)
+//Set bindKey localStorage.
+function updateBindKeyStorage(event)
 {
-	setCookie("warMode", event.target.checked ? 1 : 0);
-}
-
-//Set vampInfo cookie.
-function updateVampInfoCookie(event)
-{
-	setCookie("vampInfo", event.target.checked ? 1 : 0);
-}
-
-//Set bindKey cookie.
-function updateBindKeyCookie(event)
-{
-	setCookie("bindKey", event.target.checked ? 1 : 0);
+	localStorage.setItem("bindKey", event.target.checked ? 1 : 0);
 }
 
 
-//Set radioQWE cookie.
-function updateRadioQWECookie(event)
+//Set radioQWE localStorag.
+function updateRadioQWEStorage(event)
 {
-	setCookie("keyConfig", event.target.checked ? 0 : 1)
+	localStorage.setItem("keyConfig", event.target.checked ? 0 : 1)
 }
 
-//Set radioWAS cookie.
-function updateRadioWASCookie(event)
+//Set radioWAS localStorage.
+function updateRadioWASStorage(event)
 {
-	setCookie("keyConfig", event.target.checked ? 1 : 0)
+	localStorage.setItem("keyConfig", event.target.checked ? 1 : 0)
 }
 
 
@@ -117,39 +97,43 @@ div.appendChild(warModeDiv);
 div.appendChild(vampInfoDiv);
 div.appendChild(bindKeyDiv);
 div.appendChild(radioForm);
-warModeDiv.innerHTML  = '<label for  = "warMode">War Mode</label><input type      = "checkbox" id="warMode">';
-vampInfoDiv.innerHTML = '<label for  = "vampInfo">Vamp Info</label><input type    = "checkbox" id="vampInfo">';
-bindKeyDiv.innerHTML  = '<label for  = "bindKey">Bind Keyboard</label><input type = "checkbox" id="bindKey">';
-radioForm.innerHTML   = '<input type = "radio" name = "keyConfig" value = "QWEDCXZA" id = "QWEDCXZA" checked/><label for = "QWEDCXZA">QWEDCXZA</label> <input type = "radio" name = "keyConfig" value = "WASD-QEZX" id = "WASD-QEZX"/><label for = "WASD-QEZX">WASD-QEZX</label>';
+//tabindex = "-1" excludes tab from scrolling through these options for quick access to "More Commands".
+warModeDiv.innerHTML  = '<label for  = "warMode">War Mode</label><input type      = "checkbox" id = "warMode"  tabindex = "-1">';
+vampInfoDiv.innerHTML = '<label for  = "vampInfo">Vamp Info</label><input type    = "checkbox" id = "vampInfo" tabindex = "-1">';
+bindKeyDiv.innerHTML  = '<label for  = "bindKey">Bind Keyboard</label><input type = "checkbox" id = "bindKey"  tabindex = "-1">';
+radioForm.innerHTML   = '<input type = "radio" name = "keyConfig" value = "QWEDCXZA" id = "QWEDCXZA" checked tabindex = "-1"/> \
+						<label for = "QWEDCXZA">QWEDCXZA</label> \
+						<input type = "radio" name = "keyConfig" value = "WASD-QEZX" id = "WASD-QEZX" tabindex = "-1"/> \
+						<label for = "WASD-QEZX">WASD-QEZX</label>';
 
 //Make reference to checkbox.
 var warMode = warModeDiv.children[1];
 //Get current warMode value.
-warMode.checked = getCookie("warMode")==1? true : false;
-//When state change, update cookie.
-warMode.onchange = updateWarModeCookie;
+warMode.checked = localStorage.getItem("warMode")==1? true : false;
+//When state change, update localStorage.
+warMode.onchange = updateWarModeStorage;
 
 //Make reference to checkbox.
 var vampInfo = vampInfoDiv.children[1];
 //Get current warMode value.
-vampInfo.checked = getCookie("vampInfo")==1? true : false;
-//When state change, update cookie.
-vampInfo.onchange = updateVampInfoCookie;
+vampInfo.checked = localStorage.getItem("vampInfo")==1? true : false;
+//When state change, update localStorage.
+vampInfo.onchange = updateVampInfoStorage;
 
 //Make reference to checkbox.
 var bindKey = bindKeyDiv.children[1];
 //Get current bindKey value.
-bindKey.checked = getCookie("bindKey")==1? true : false;
-//When state change, update cookie.
-bindKey.onchange = updateBindKeyCookie;
+bindKey.checked = localStorage.getItem("bindKey")==1? true : false;
+//When state change, update localStorage.
+bindKey.onchange = updateBindKeyStorage;
 
 //Make reference to radio.
 var radioQWE = radioForm.children[0];
 var radioWAS = radioForm.children[2];
-radioQWE.checked = getCookie("keyConfig")==1? false : true;
-radioWAS.checked = getCookie("keyConfig")==1? true : false;
-radioQWE.onchange = updateRadioQWECookie;
-radioWAS.onchange = updateRadioWASCookie;
+radioQWE.checked = localStorage.getItem("keyConfig")==1? false : true;
+radioWAS.checked = localStorage.getItem("keyConfig")==1? true : false;
+radioQWE.onchange = updateRadioQWEStorage;
+radioWAS.onchange = updateRadioWASStorage;
 
 
 
@@ -214,11 +198,20 @@ if (vampInfo.checked)
 
 document.body.addEventListener("keydown", function(event)
 {
+	//If keybinding is off, don't assign actions to keys.
 	if (bindKey.checked == false) return;
 	
+	//If CTRL key is pressed, temporarily disable keybinding, i.e. CTRL+C to copy hits.
 	if (event.ctrlKey) return;
 	
-	if (document.activeElement && document.activeElement.type && document.activeElement.type.toLowerCase() == "text") return;
+	//If a text form is active, temporarily disable keybinding, i.e. selecting Teleport location.
+	if (document.activeElement.type && document.activeElement.type.toLowerCase() == "text") return;
+	//if (document.activeElement == document.body) return;
+	
+	//If a select form, i.e. dropdown, is active, temporarily disable actions linked to keybinding. 
+	if (document.activeElement.tagName.toLowerCase() == "select") return;
+	
+	console.log("key pressed: ", event.keyCode);
 	
 	function doMove(moveIndex)
 	{
@@ -252,75 +245,97 @@ document.body.addEventListener("keydown", function(event)
 			}
 		}
 	}
+
+	function doHuman()
+	{
+		var forms = document.getElementsByTagName("form");
+		for (var i = 0; i < forms.length; i++)
+		{
+			var form = forms[i];
+			if (form.action.value == "drink" && form.t.value == "0")
+			{
+				form.submit();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	function doVamp(action)
+	{
+		//a for anchor tag.
+		var links = document.getElementsByTagName("a");
+		for (var i = 0; i <links.length; i++)
+		{
+			var link = links[i];
+			if (link.innerHTML == action) //"drink" or "rob"
+			{
+				window.location.href = link.href;
+			}
+		}
+	}
 	
 	//var forms = document.getElementsByTagName("form");
 	
-	
-	if(radioQWE.checked)
-	{
-		switch(event.keyCode)
-		{
-			case 81: //q: move up-left
-				doMove(0);
-				break;
-			case 87: //w: move up
-				doMove(1);
-				break;
-			case 69: //e: move up-right
-				doMove(2);
-				break;
-			case 68: //d: move right
-				doMove(4);
-				break;
-			case 67: //c: move down-right
-				doMove(7);
-				break;
-			case 88: //x: move down
-				doMove(6);
-				break;
-			case 90: //z: move down-left
-				doMove(5);
-				break;
-			case 65: //a: move left
-				doMove(3);
-				break;
-		}
-	}
-	else
-	{
-		switch(event.keyCode)
-		{
-			case 87: //w: move up
-				doMove(1);
-				break;
-			case 65: //a: move left
-				doMove(3);
-				break;
-			case 83: //s: move down
-				doMove(6);
-				break;
-			case 68: //d: move right
-				doMove(4);
-				break;
-			case 81: //q: move up-left
-				doMove(0);
-				break;
-			case 69: //e: move up-right
-				doMove(2);
-				break;
-			case 90: //z: move down-left
-				doMove(5);
-				break;
-			case 88: //x: move down-right
-				doMove(7);
-				break;
-		}
-	}
-	
-	
-	
 	switch(event.keyCode)
 	{
+		
+		case 66: //b: biter
+			if (!warMode.checked) //No Human found!
+			{
+				if (!doHuman())
+				{
+					doVamp("drink");
+				}
+			}
+			break;
+		case 82: //r: rob
+			if (!warMode.checked)
+			{
+				doVamp("rob");
+			}
+			break;
+		case 81: //q: move up-left
+			doMove(0);
+			break;
+		case 87: //w: move up
+			doMove(1);
+			break;
+		case 69: //e: move up-right
+			doMove(2);
+			break;
+		case 68: //d: move right
+			doMove(4);
+			break;
+		case 67: //c: move down-right or no move
+			if (radioQWE.checked)
+			{
+				doMove(7);
+			}
+			else
+			{
+				return;
+			}
+			break;
+		case 88: //x: move down or down-right
+			doMove(radioQWE.checked ? 6 : 7);
+			break;
+		case 90: //z: move down-left
+			doMove(5);
+			break;
+		case 65: //a: move left
+			doMove(3);
+			break;
+		case 83: //s: no move or move down
+			if (!radioQWE.checked)
+			{
+				doMove(6);
+			}
+			else
+			{
+				return;
+			}
+			break;
 		case 71: //g: garlic spray
 			doCommand("use", "33");
 			break;
@@ -348,7 +363,10 @@ document.body.addEventListener("keydown", function(event)
 		//case xx: //xxxxxxx: refresh 
 			//document.location.reload(true);
 			//break;
-		//default: return;
+		//If no keybinding matches found, don't prevent default behavior, i.e. let tab key work to move between forms.
+		default: return;
 	}
+	
+	console.log("prevent default behavior");
 	event.preventDefault();
 });
