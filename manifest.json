@@ -6,7 +6,7 @@
 	"content_scripts": [
 		{
 			"matches": ["*://quiz.ravenblack.net/blood.pl*"],
-			"js": ["ravenblackNavigator.js"]
+			"js": ["vampireData.js", "ravenblackNavigator.js"]
 		}
 	]
 }
