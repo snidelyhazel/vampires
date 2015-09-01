@@ -1,6 +1,7 @@
 //Welcome to the Ravenblack Navigator.
 
 //Feature list:
+//	+ Multiple login support
 //	+ Clean interface
 //		- Consolidated banner, header and footer
 //		- Rearranged links
@@ -26,6 +27,8 @@
 //	+ Distance calculator
 //		- Displays AP needed and relative direction between any two points on the grid
 //			= Includes ability to set starting point to current location
+//	+ Landmark finder
+//		- Find banks (pubs coming soon!) near given intersection
 //	+ War mode
 //		- Autoloading "More Commands"
 //		- Eliminates unnecessary speaking (say and shout), telepathy and giving commands
@@ -35,8 +38,13 @@
 //		- Tracking of hits by and against
 //			= Includes biting and robbing
 //
-//	+ Coming soon: Instant updating of pocket change and inventory, multiple login support!
+//	+ Coming soon: Instant updating of pocket change and inventory, shopping calculator!
 
+
+
+
+//	+ Setup
+//	Data initialization.
 
 //Use page load time to guess if the page was freshly downloaded, or loaded from a cache.
 var pageLoadTime = window.performance.timing.responseStart - window.performance.timing.requestStart;
@@ -45,6 +53,9 @@ var isNewPage = pageLoadTime > 10;
 
 //Get list of 3x3 grid spaces.
 var spaces = document.querySelectorAll("td.street, td.city, td.intersect, td.cityblock");
+
+//List forms.
+var forms = document.getElementsByTagName("form");
 
 //Access container of game interface.
 var firstSpacey = document.getElementsByClassName("spacey")[0];
@@ -55,24 +66,120 @@ var secondSpacey = document.getElementsByClassName("spacey")[1];
 var mainDiv = document.getElementById("main");
 
 var borderDiv;
-for (var i = 0; i < firstSpacey.children.length; i++)
+if (firstSpacey)
 {
-	var child = firstSpacey.children[i];
-	if (child.tagName == "DIV")
+	for (var i = 0; i < firstSpacey.children.length; i++)
 	{
-		borderDiv = child;
-		break;
+		var child = firstSpacey.children[i];
+		if (child.tagName == "DIV")
+		{
+			borderDiv = child;
+			break;
+		}
 	}
 }
 
+//Differentiate between screens.
 var isCityView = (spaces.length == 9);
-var isMyVampView = (borderDiv.childNodes[0].nodeName == "#text" && borderDiv.childNodes[0].data.indexOf("You have drunk") != -1);
-var isSSView = (borderDiv.childNodes[0].nodeName == "#text" && borderDiv.childNodes[0].data.indexOf("The vampire") != -1);
+var isMyVampView = (borderDiv && borderDiv.childNodes[0].nodeName == "#text" && borderDiv.childNodes[0].data.indexOf("You have drunk") != -1);
+var isSSView = (borderDiv && borderDiv.childNodes[0].nodeName == "#text" && borderDiv.childNodes[0].data.indexOf("The vampire") != -1);
 var isLoginView = (document.querySelectorAll("form.head").length != 0);
-var isWelcomeView = (location.href.indexOf("action=welcome") != -1);
+var isLogoutView = (window.location.href.indexOf("action=logout") != -1);
+var isWelcomeView = (window.location.href.indexOf("action=welcome") != -1);
 
 var userString = secondSpacey.childNodes[0].data;
 var userName = userString.substring(userString.indexOf("You are the vampire ") + 20, userString.indexOf(" (if this is not you"));
+
+
+
+
+//	+ Multiple login support
+
+//Call to create or update a cookie with a value.
+//Be careful: this information gets sent to the server!
+function setCookie(name, value)
+{
+	var d = new Date();
+	d.setTime(d.getTime() + (10 * 365 * 24 * 60 * 60 * 1000));
+	document.cookie = name + "=" + value + "; expires=" + d.toUTCString() + "; path=/";
+}
+
+//Call to retrieve cookie value.
+function getCookie(name)
+{
+	name = name + "=";
+	var ca = document.cookie.split(';');
+	for (var i = 0; i < ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0) == ' ') c = c.substring(1);
+		if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+	}
+	return "";
+}
+
+//Call to delete cookie.
+function deleteCookie( name ) {
+  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+//Get logins from local storage and store in an array.
+var allLogins = localStorage.getItem("logins");
+if (allLogins == null)
+{
+	//If no logins stored, make an array.
+	allLogins = [];
+}
+else
+{
+	//If logins stored, separate by comma. 
+	allLogins = allLogins.split(",");
+}
+
+//If login is successful, save login.
+if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
+{
+	//Get value in ip cookie.
+	var currentLogin = getCookie("ip");
+	//Deal only with the username.
+	var currentUsername = currentLogin.split("#")[0];
+	
+	//Compare to list of logins.
+	var foundMatch = false;
+	for (var i = 0; i < allLogins.length; i++)
+	{
+		var existingLogin = allLogins[i];
+		var existingUsername = existingLogin.split("#")[0];
+		//If the current username matches an existing username, end search, update entry.
+		if (currentUsername == existingUsername)
+		{
+			allLogins[i] = currentLogin;
+			localStorage.setItem("logins", allLogins.join(","));
+			foundMatch = true;
+			break;
+		}
+	}
+	
+	//If no match found, save new entry.
+	if (foundMatch == false)
+	{
+		allLogins.push(currentLogin);
+		localStorage.setItem("logins", allLogins.join(","));
+	}
+}
+
+//Get vampires attacked recently.
+var vampsAttacked = localStorage.getItem("vampsAttacked" + userName);
+if (vampsAttacked == null)
+{
+	//If no vampsAttacked, make an array.
+	vampsAttacked = [];
+}
+else
+{
+	//If vampsAttacked stored, separate by comma. 
+	vampsAttacked = vampsAttacked.split(",");
+}
+
 
 
 
@@ -168,6 +275,18 @@ if (isLoginView == false)
 		localStorage.setItem("warMode", event.target.checked ? 1 : 0);
 	}
 	
+	//Set doubleGS localStorage.
+	function updateDoubleGSStorage(event)
+	{
+		localStorage.setItem("doubleGS", event.target.checked ? 1 : 0);
+	}
+	
+	//Set loginBox localStorage.
+	function updateLoginBoxStorage(event)
+	{
+		localStorage.setItem("loginBox", event.target.checked ? 1 : 0);
+	}
+	
 	//Set displayFinancials localStorage.
 	function updateDisplayFinancialsStorage(event)
 	{
@@ -205,22 +324,44 @@ if (isLoginView == false)
 	leftSideDiv.style.float = "left";
 	leftSideDiv.style.width = "150px";
 	
+	var optionsTriangle = document.createElement("div");
+	optionsTriangle.innerHTML = "<span style='font-size: 90%;'>► Options</span>";
+	leftSideDiv.appendChild(optionsTriangle);
+	optionsTriangle.style.cursor = "pointer";
+	var optionsAreOpen = false;
+	optionsTriangle.addEventListener("click", function() {
+		optionsAreOpen = !optionsAreOpen;
+		optionsTriangle.innerHTML = (optionsAreOpen ? "▼ Options" : "► Options");
+		optionsDiv.style.display = (optionsAreOpen ? "block" : "none");
+	});
+	
+	var optionsDiv = document.createElement("div");
+	optionsDiv.style.fontSize = "75%";
+	optionsDiv.style.display = "none";
+	leftSideDiv.appendChild(optionsDiv);
+	
 	//Create labels, checkboxes, radiobuttons.
 	var bindKeyDiv    = document.createElement("div");
 	var radioForm     = document.createElement("form"); 
 	var warModeDiv    = document.createElement("div");
+	var doubleGSDiv   = document.createElement("div");
+	var loginBoxDiv   = document.createElement("div");
 	var vampInfoDiv   = document.createElement("div");
 	var financialsDiv = document.createElement("div");
 	var inventoryDiv  = document.createElement("div");
 	var powersDiv     = document.createElement("div");
-	leftSideDiv.appendChild(bindKeyDiv);
-	leftSideDiv.appendChild(radioForm);
-	leftSideDiv.appendChild(warModeDiv);
-	leftSideDiv.appendChild(document.createElement("hr"));
-	leftSideDiv.appendChild(vampInfoDiv);
-	leftSideDiv.appendChild(financialsDiv);
-	leftSideDiv.appendChild(inventoryDiv);
-	leftSideDiv.appendChild(powersDiv);
+	optionsDiv.appendChild(bindKeyDiv);
+	optionsDiv.appendChild(radioForm);
+	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(warModeDiv);
+	optionsDiv.appendChild(doubleGSDiv);
+	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(loginBoxDiv);
+	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(vampInfoDiv);
+	optionsDiv.appendChild(financialsDiv);
+	optionsDiv.appendChild(inventoryDiv);
+	optionsDiv.appendChild(powersDiv);
 	//tabindex = "-1" excludes tab from scrolling through these options for quick access to "More Commands".
 	bindKeyDiv.innerHTML  = '<label for  = "bindKey">Bind Keyboard</label><input type = "checkbox" id = "bindKey"  tabindex = "-1">';
 	radioForm.innerHTML   = '<div><input type = "radio" name = "keyConfig" value = "QWEDCXZA" id = "QWEDCXZA" checked tabindex = "-1"/> \
@@ -228,7 +369,9 @@ if (isLoginView == false)
 							<div><input type = "radio" name = "keyConfig" value = "WASD-QEZX" id = "WASD-QEZX" tabindex = "-1"/> \
 							<label for = "WASD-QEZX">WASD-QEZX</label> </div>';
 	warModeDiv.innerHTML  = '<label for  = "warMode">War Mode</label><input type      = "checkbox" id = "warMode"  tabindex = "-1">';
-	vampInfoDiv.innerHTML = '<label>Vamp Info:</label>';
+	doubleGSDiv.innerHTML = '<label for  = "doubleGS">Double GS</label><input type      = "checkbox" id = "doubleGS"  tabindex = "-1">';
+	loginBoxDiv.innerHTML = '<label for  = "loginBox">Save Logins</label><input type = "checkbox" id = "loginBox"  tabindex = "-1">';
+	vampInfoDiv.innerHTML = '<label>Vampire Vitals</label>';
 	financialsDiv.innerHTML = '<label for = "financials">Financials</label><input type = "checkbox" id = "financials" tabindex = "-1">';
 	inventoryDiv.innerHTML  = '<label for = "inventory">Inventory</label><input type = "checkbox" id = "inventory" tabindex = "-1">';
 	powersDiv.innerHTML     = '<label for = "powers">Powers</label><input type = "checkbox" id = "powers" tabindex = "-1">';
@@ -262,8 +405,11 @@ if (isLoginView == false)
 	radioWAS.onchange = updateRadioWASStorage;
 	
 	bindKeyDiv.style.backgroundColor = "black";
+	bindKeyDiv.style.fontSize = "100%";
 	radioQWEDiv.style.backgroundColor = "black";
+	radioQWEDiv.style.fontSize = "100%";
 	radioWASDiv.style.backgroundColor = "black";
+	radioWASDiv.style.fontSize = "100%";
 	
 	
 	radioQWEDiv.title = "Movement controls (relative to S):<br /> \
@@ -286,10 +432,21 @@ if (isLoginView == false)
 						Z: southwest<br /> \
 						X: southeast<br />";
 	
+	warModeDiv.title = "Autoloads more commands after moving.<br /> \
+						Hides say, shout, telepathy and give commands.<br /> \
+						Disables B and R keybinding.";
 	
+	
+	warModeDiv.style.fontSize = "100%";
+	doubleGSDiv.style.fontSize = "100%";
+	loginBoxDiv.style.fontSize = "100%";
+	vampInfoDiv.style.fontSize = "100%";
 	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
+	financialsDiv.style.fontSize = "100%";
 	inventoryDiv.title  = "Tracks current inventory. Loaded from My Vampire page.";
+	inventoryDiv.style.fontSize = "100%";
 	powersDiv.title     = "Tracks powers, and current quest info if applicable. Loaded from My Vampire page.";
+	powersDiv.style.fontSize = "100%";
 	
 	//Make reference to warMode checkbox.
 	var warMode = warModeDiv.children[1];
@@ -297,6 +454,20 @@ if (isLoginView == false)
 	warMode.checked = localStorage.getItem("warMode") == 1 ? true : false;
 	//When state change, update localStorage.
 	warMode.onchange = updateWarModeStorage;
+	
+	//Make reference to doubleGS checkbox.
+	var doubleGS = doubleGSDiv.children[1];
+	//Get current doubleGS value.
+	doubleGS.checked = localStorage.getItem("doubleGS") == 1 ? true : false;
+	//When state change, update localStorage.
+	doubleGS.onchange = updateDoubleGSStorage;
+	
+	//Make reference to loginBox checkbox.
+	var loginBox = loginBoxDiv.children[1];
+	//Get current loginBox value.
+	loginBox.checked = localStorage.getItem("loginBox") == 1 ? true : false;
+	//When state change, update localStorage.
+	loginBox.onchange = updateLoginBoxStorage;
 	
 	//Make reference to financials checkbox.
 	var displayFinancials = financialsDiv.children[1];
@@ -319,21 +490,65 @@ if (isLoginView == false)
 	//When state change, update localStorage.
 	displayPowers.onchange = updateDisplayPowersStorage;
 	
+	//Separate elements.
+	for (var i = 0; i < 2; i++) leftSideDiv.appendChild(document.createElement("br"));
 	
+	//Create a menu to select a vampire.
+	var loginMenu = document.createElement("select");
+	for (var i = 0; i < allLogins.length; i++)
+	{
+		var option = document.createElement("option");
+		option.value = allLogins[i];
+		option.text = allLogins[i].split("#")[0];
+		if (option.text == userName) option.selected = "selected";
+		loginMenu.appendChild(option);
+	}
+	leftSideDiv.appendChild(loginMenu);
+	loginMenu.addEventListener("change", function()
+	{
+		//loginMenu.value corresponds to the currently selected option's .value, which should be "username#password"
+		setCookie("ip", loginMenu.value);
+		deleteCookie("stamp");
+		window.location.href = "/blood.pl";
+	});
 	
+	//Create button to remove login from list.
+	var forgetButton = document.createElement("button");
+	leftSideDiv.appendChild(forgetButton);
+	forgetButton.innerHTML = "Forget vampire";
+	forgetButton.addEventListener("click", function(event)
+	{
+		//Search for the current username amongst saved ones.
+		for (var i = 0; i < allLogins.length; i++)
+		{
+			if (allLogins[i].indexOf(userName + "#") != -1)
+			{
+				//Remove the login and update the list.
+				allLogins.splice(i, 1);
+				localStorage.setItem("logins", allLogins.join(","));
+				break;
+			}
+		}
+		
+		//Remove associated records.
+		localStorage.removeItem("coinsIn" + userName);
+		localStorage.removeItem("coinsOn" + userName);
+		localStorage.removeItem("currentX" + userName);
+		localStorage.removeItem("currentY" + userName);
+		localStorage.removeItem("hittracker" + userName);
+		localStorage.removeItem("inventory" + userName);
+		localStorage.removeItem("powers" + userName);
+	});
 	
-	for (var i = 0; i < 10; i++) leftSideDiv.appendChild(document.createElement("br"));
+	//Separate elements.
+	for (var i = 0; i < 2; i++) leftSideDiv.appendChild(document.createElement("br"));
 	
-	
-	
-	
-	// Need to: make the div, make the options for the power stuff, bank stuff, inventory
+	//Create div container for vampInfo.
 	var myVampDiv = document.createElement("div");
 	myVampDiv.style.border = "solid white 1px";
-	myVampDiv.style.padding = "7px";
+	myVampDiv.style.padding = "5px";
 	leftSideDiv.appendChild(myVampDiv);
 	myVampDiv.style.maxWidth = "150px";
-	
 	
 	//Hovertext settings.
 	var moCustom = document.createElement("div");
@@ -388,6 +603,8 @@ if (isLoginView == false)
 	radioQWEDiv.addEventListener("mouseleave", onHoverOut);
 	radioWASDiv.addEventListener("mouseenter", onHoverOver);
 	radioWASDiv.addEventListener("mouseleave", onHoverOut);
+	warModeDiv.addEventListener("mouseenter", onHoverOver);
+	warModeDiv.addEventListener("mouseleave", onHoverOut);
 	financialsDiv.addEventListener("mouseenter", onHoverOver);
 	financialsDiv.addEventListener("mouseleave", onHoverOut);
 	inventoryDiv.addEventListener("mouseenter", onHoverOver);
@@ -420,26 +637,64 @@ if (isLoginView == false)
 	
 	
 	
-	//	+ Right sidebar
+	leftSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
 	
-	//Create div container for checkbox.
-	var rightSideDiv = document.createElement("div");
-	//Put div above grid.
-	document.body.insertBefore(rightSideDiv, document.body.firstChild);
-	//Put div on right side.
-	rightSideDiv.style.float = "right";
-	//Define position of div container.
-	rightSideDiv.style.position = "relative";
-	//Create separate div for hit-tracking.
+	
+	var hitTrackerBox = document.createElement("div");
+	leftSideDiv.appendChild(hitTrackerBox);
+	hitTrackerBox.style.border = "solid white 1px";
+	hitTrackerBox.style.padding = "5px";
+	//hitTrackerBox.style.fontSize = "1%";
+	
+	var hitTrackerTitle = document.createElement("div");
+	hitTrackerTitle.innerHTML = "<span style='font-size: 90%;'>Hit tracker: </span><br />";
+	hitTrackerBox.appendChild(hitTrackerTitle);	
+	
+	//Select all hit-tracking button.
+	var selectHitsButton = document.createElement("button");
+	hitTrackerBox.appendChild(selectHitsButton);
+	selectHitsButton.innerHTML = "Select All";
+	selectHitsButton.addEventListener("click", function(event)
+	{
+		var range;
+		if (document.body.createTextRange) //IE
+		{
+			range = document.body.createTextRange();
+			range.moveToElementText(scrollingDiv);
+			range.select();
+		}
+		else if (window.getSelection) //Chrome, Firefox, Safari, even Opera
+		{
+			var selection = window.getSelection();
+			range = document.createRange();
+			range.selectNodeContents(scrollingDiv);
+			selection.removeAllRanges();
+			selection.addRange(range);
+		}
+	});
+	
+	//Clear hit-tracking button.
+	var clearHitsButton = document.createElement("button");
+	hitTrackerBox.appendChild(clearHitsButton);
+	clearHitsButton.innerHTML = "Clear All";
+	//clearHitsButton.style.bottom = "0px";
+	clearHitsButton.addEventListener("click", function(event)
+	{
+		localStorage.setItem("hittracker" + userName, "");
+		scrollingDiv.innerHTML = "";
+	});
+	
+	//Insert contents of localStorage into div.
 	var scrollingDiv = document.createElement("div");
-	rightSideDiv.appendChild(scrollingDiv);
+	hitTrackerBox.appendChild(scrollingDiv);
 	//Constrain dimensions of div container.
-	scrollingDiv.style.width = "200px";
-	scrollingDiv.style.height = "250px";
+	scrollingDiv.style.width = "136px";
+	scrollingDiv.style.height = "130px";
 	//Control overflow by scrolling.
-	scrollingDiv.style.overflow = "scroll";
+	scrollingDiv.style.overflowY = "auto";
 	scrollingDiv.style.fontSize = "75%";
-	rightSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
 	
 	
 	
@@ -447,9 +702,9 @@ if (isLoginView == false)
 	//	+ Hit-tracking
 	
 	//Initialize hit-tracking.
-	if (localStorage.getItem("hittracker") == null)
+	if (localStorage.getItem("hittracker" + userName) == null)
 	{
-		localStorage.setItem("hittracker", ""); 
+		localStorage.setItem("hittracker" + userName, ""); 
 	}
 	
 	//Store hit-tracking.
@@ -490,12 +745,12 @@ if (isLoginView == false)
 			localStorage.setItem("coinsOn" + userName, newCoinsOn);
 		}
 		
-		localStorage.setItem("hittracker", localStorage.getItem("hittracker") + message);
+		localStorage.setItem("hittracker" + userName, localStorage.getItem("hittracker" + userName) + message);
 	}
 	
 	if (isCityView && isNewPage)
 	{
-		//Hits dealth are in the firstSpacey before the borderDiv.
+		//Hits dealt are in the firstSpacey before the borderDiv.
 		for (var i = 0; i < firstSpacey.childNodes.length; i++)
 		{
 			var child = firstSpacey.childNodes[i];
@@ -540,47 +795,12 @@ if (isLoginView == false)
 		}
 	}
 	
-	//Insert contents of localStorage into div.
-	scrollingDiv.innerHTML = localStorage.getItem("hittracker");
+	scrollingDiv.innerHTML = localStorage.getItem("hittracker" + userName);
 	scrollingDiv.scrollTop = scrollingDiv.scrollHeight;
 	
-	//Clear hit-tracking button.
-	var clearHitsButton = document.createElement("button");
-	rightSideDiv.appendChild(clearHitsButton);
-	clearHitsButton.innerHTML = "Clear Hits";
-	//clearHitsButton.style.bottom = "0px";
-	clearHitsButton.addEventListener("click", function(event)
-	{
-		localStorage.setItem("hittracker", "");
-		scrollingDiv.innerHTML = "";
-	});
-	
-	//Select all hit-tracking button.
-	var selectHitsButton = document.createElement("button");
-	rightSideDiv.appendChild(selectHitsButton);
-	selectHitsButton.innerHTML = "Select All Hits";
-	selectHitsButton.addEventListener("click", function(event)
-	{
-		var range;
-		if (document.body.createTextRange) //IE
-		{
-			range = document.body.createTextRange();
-			range.moveToElementText(scrollingDiv);
-			range.select();
-		}
-		else if (window.getSelection) //Chrome, Firefox, Safari, even Opera
-		{
-			var selection = window.getSelection();
-			range = document.createRange();
-			range.selectNodeContents(scrollingDiv);
-			selection.removeAllRanges();
-			selection.addRange(range);
-		}
-	});
-	
 	//Add space between sections.
-	rightSideDiv.appendChild(document.createElement("br"));
-	rightSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
 	
 	
 	
@@ -648,18 +868,133 @@ if (isLoginView == false)
 		
 		if (foundQuest == false)
 		{
-			localStorage.removeItem("quest");
+			localStorage.removeItem("quest" + userName);
 		}
 	}
 	
 	/*
 	TO DO:
-	figure out how to add and subtract money when someone robs from you or you rob someone
-	pull the inventory, and if you have a scroll of accounting you can pull it from there
-		update when you get to a bank
 		handle paying money at a pub, a guild, or a shop; pub and shop shows money?
 	*/
 	
+	//Handler for pocket change after purchasing powers.
+	for (var i = 0; i < forms.length; i++)
+	{
+		var form = forms[i];
+		
+		//If form is in a guild, track purchases by subtracting price from pocket change.
+		if (form.action.value == "learn")
+		{
+			//Purchase button is form's last child.
+			var button = form.children[form.children.length-1];
+			//When button is clicked.
+			button.addEventListener("click", function(event)
+			{
+				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
+				var form = event.target.parentElement;
+				//Price of power is contained in its label.
+				message = form.childNodes[2].data;
+				var priceString = message.substring(message.indexOf("For ") + 4, message.indexOf(" coin"));
+				var price = parseInt(priceString);
+				//Get current pocket change amount.
+				var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
+				//If vampire can afford power, subtract price and save pocket change.
+				if (coinsOn >= price)
+				{
+					coinsOn -= price;
+					localStorage.setItem("coinsOn" + userName, coinsOn);
+				}
+			});
+		}
+	}
+	
+	//Handler for pocket change after purchasing items.
+	for (var i = 0; i < forms.length; i++)
+	{
+		var form = forms[i];
+		
+		if (form.action.value == "shop" && form.t.value != "heal")
+		{
+			console.log("found a shop");
+			
+			var shopDiv = form.children[1];
+			
+			var shopBalance = shopDiv.childNodes[shopDiv.childNodes.length-1];
+			var pocketString = shopBalance.data;
+			var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+			localStorage.setItem("coinsOn" + userName, coinsOn);
+			
+			//Purchase button is form's third-last grandchild.
+			var button = shopDiv.children[shopDiv.children.length-2];
+			console.log("found a button:" + button.value);
+			//When button is clicked.
+			button.addEventListener("click", function(event)
+			{
+				console.log("shop button was pressed!");
+				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
+				var form = event.target.parentElement.parentElement;
+				
+				for (var j = 0; j < form.t.length; j++)
+				{
+					var radio = form.t[j];
+					if (form.t.value == radio.value) 
+					{
+						console.log("radio button selected: " + radio.value);
+						var itemPrice = parseInt(radio.previousSibling.data.slice(2,-1));
+						var itemName = radio.previousSibling.previousSibling.previousSibling.data.slice(0,-1);
+						var itemQuantity = parseInt(form.target.value);
+						console.log(itemPrice);
+						console.log(itemName);
+						console.log(itemQuantity);
+						
+						var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
+						var inventory = localStorage.getItem("inventory" + userName);
+						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
+						console.log(coinsOn);
+						
+						if ((itemPrice * itemQuantity) <= coinsOn)
+						{
+							coinsOn -= itemPrice * itemQuantity;
+							localStorage.setItem("coinsOn" + userName, coinsOn);
+							
+							var foundItem = false;
+							for (var k = 0; k < inventoryArray.length; k++)
+							{
+								var oldItemString = inventoryArray[k];
+								if (oldItemString.indexOf(itemName) != -1)
+								{
+									foundItem = true;
+									
+									var oldQuantityString = oldItemString.substring(oldItemString.indexOf("(")+1, oldItemString.indexOf(")"));
+									var oldQuantity = parseInt(oldQuantityString);
+									itemQuantity += oldQuantity;
+									//var newQuantity = oldQuantity + itemQuantity;
+									console.log("found old item");
+									console.log(inventoryArray[k]);
+									console.log(oldQuantity);
+									inventoryArray[k] = itemName + " (" + itemQuantity + ")";
+									console.log(inventoryArray[k]);
+								}
+							}
+							if (foundItem == false)
+							{
+								console.log("adding new item");
+								inventoryArray.push(itemName + " (" + quantity + ")");
+							}
+							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+						}
+					}
+				}
+			});
+		}
+	}
+	
+	
+	var myVampTitle = document.createElement("div");
+	myVampTitle.innerHTML = "<span style='font-size: 90%;'>Vampire vitals:</span>";
+	myVampDiv.appendChild(myVampTitle);
+	
+	myVampDiv.appendChild(document.createElement("hr"));
 	
 	var financialsBox = document.createElement("div");
 	var inventoryBox = document.createElement("div");
@@ -676,9 +1011,24 @@ if (isLoginView == false)
 	var financialsHR = document.createElement("hr");
 	var inventoryHR = document.createElement("hr");
 	
-	
-	financialsBox.innerHTML = "Pocket change: " + localStorage.getItem("coinsOn" + userName) + "<br />";
-	financialsBox.innerHTML += "Bank account: " + localStorage.getItem("coinsIn" + userName);
+	var coinsOn = localStorage.getItem("coinsOn" + userName);
+	if (isNaN(parseInt(coinsOn)))
+	{
+		financialsBox.innerHTML = "Pocket change: View your My Vampire page<br />";
+	}
+	else
+	{
+		financialsBox.innerHTML = "Pocket change: " + coinsOn + "<br />";
+	}
+	var coinsIn = localStorage.getItem("coinsIn" + userName);
+	if (isNaN(parseInt(coinsIn)))
+	{
+		financialsBox.innerHTML += "Bank account: Visit your local Omnibank branch";
+	}
+	else
+	{
+		financialsBox.innerHTML += "Bank account: " + coinsIn;
+	}
 	financialsBox.appendChild(financialsHR);
 	inventoryBox.innerHTML += "Inventory: " + localStorage.getItem("inventory" + userName);
 	inventoryBox.appendChild(inventoryHR);
@@ -692,6 +1042,21 @@ if (isLoginView == false)
 	inventoryHR.style.display = displayPowers.checked ? "block" : "none";
 	
 	
+	
+	
+	
+	
+	//	+ Right sidebar
+	
+	//Create div container for checkbox.
+	var rightSideDiv = document.createElement("div");
+	//Put div above grid.
+	document.body.insertBefore(rightSideDiv, document.body.firstChild);
+	//Put div on right side.
+	rightSideDiv.style.float = "right";
+	//Define position of div container.
+	rightSideDiv.style.position = "relative";
+	//Create separate div for hit-tracking.
 	
 	
 	
@@ -727,6 +1092,39 @@ if (isLoginView == false)
 				directionString += "E";
 			}
 			
+			if (directionString == "N")
+			{
+				directionString += " ↑";
+			}
+			else if (directionString == "S")
+			{
+				directionString += " ↓";
+			}
+			else if (directionString == "W")
+			{
+				directionString += " ←";
+			}
+			else if (directionString == "E")
+			{
+				directionString += " →";
+			}
+			else if (directionString == "NW")
+			{
+				directionString += "<span style='font-size: 120%; line-height: 25%;'> ↖</span>";
+			}
+			else if (directionString == "NE")
+			{
+				directionString += "<span style='font-size: 120%; line-height: 25%;'> ↗</span>";
+			}
+			else if (directionString == "SW")
+			{
+				directionString += "<span style='font-size: 120%; line-height: 25%;'> ↙</span>";
+			}
+			else if (directionString == "SE")
+			{
+				directionString += "<span style='font-size: 120%; line-height: 25%;'> ↘</span>";
+			}
+			
 			directionString += ", ";
 			
 			directionString += Math.max(Math.abs(directionX), Math.abs(directionY));
@@ -760,6 +1158,16 @@ if (isLoginView == false)
 			currentX = spaceX + offset[0];
 			currentY = spaceY + offset[1];
 			
+			var previousX = parseInt(localStorage.getItem("currentX" + userName));
+			var previousY = parseInt(localStorage.getItem("currentY" + userName));
+			
+			//If position is not the same as saved position, we must have moved!
+			if (previousX != currentX || previousY != currentY)
+			{
+				vampsAttacked = [];
+				localStorage.setItem("vampsAttacked" + userName, vampsAttacked.join(","));
+			}
+			
 			localStorage.setItem("currentX" + userName, currentX);
 			localStorage.setItem("currentY" + userName, currentY);
 			
@@ -770,83 +1178,115 @@ if (isLoginView == false)
 	currentX = parseInt(localStorage.getItem("currentX" + userName));
 	currentY = parseInt(localStorage.getItem("currentY" + userName));
 	
-	
 	//Bank info
-	var bankDistances = [200, 200, 200, 200, 200]; //actual width and height of grid
-	var nearestBanks = [null, null, null, null, null];
-	//Parse array of banks.
-	for (var i = 0; i < bankArray.length; i++)
+	function findNearestBanks(coordX, coordY, howManyBanks)
 	{
-		var bankX = bankArray[i][1]; //x coordinate index 1
-		var bankY = bankArray[i][2]; //y coordinate index 2
-		
-		//Determine distances on x and y coordinates.
-		var distanceX = Math.abs(bankX - currentX);
-		var distanceY = Math.abs(bankY - currentY);
-		
-		//Determine number of moves to bank.
-		var distance = Math.max(distanceX, distanceY);
-		
-		//Comparison to closest-known bank, sorting algorithm.
-		for (var j = bankDistances.length - 1; j >= 0; j--)
+		var bankDistances = [];
+		var nearestBankList = [];
+		for (var i = 0; i < howManyBanks; i++)
 		{
-			if (distance < bankDistances[j])
+			bankDistances[i] = 200; //actual width and height of grid
+			nearestBankList[i] = null;
+		}
+		//Parse array of banks.
+		for (var i = 0; i < bankArray.length; i++)
+		{
+			var bankX = bankArray[i][1]; //x coordinate index 1
+			var bankY = bankArray[i][2]; //y coordinate index 2
+		
+			//Determine distances on x and y coordinates.
+			var distanceX = Math.abs(bankX - coordX);
+			var distanceY = Math.abs(bankY - coordY);
+		
+			//Determine number of moves to bank.
+			var distance = Math.max(distanceX, distanceY);
+		
+			//Comparison to closest-known bank, sorting algorithm.
+			for (var j = bankDistances.length - 1; j >= 0; j--)
 			{
-				if (j > 0 && distance < bankDistances[j - 1])
+				if (distance < bankDistances[j])
 				{
-					bankDistances[j] = bankDistances[j - 1];
-					nearestBanks[j] = nearestBanks[j - 1];
-				}
-				else
-				{
-					bankDistances[j] = distance;
-					nearestBanks[j] = bankArray[i];
-					break;
+					if (j > 0 && distance < bankDistances[j - 1])
+					{
+						bankDistances[j] = bankDistances[j - 1];
+						nearestBankList[j] = nearestBankList[j - 1];
+					}
+					else
+					{
+						bankDistances[j] = distance;
+						nearestBankList[j] = bankArray[i];
+						break;
+					}
 				}
 			}
 		}
+		
+		return nearestBankList;
 	}
+	
+	var nearestBanks = findNearestBanks(currentX, currentY, 5);
 	
 	var rightBorderDiv = document.createElement("div");
 	rightSideDiv.appendChild(rightBorderDiv);
 	rightBorderDiv.style.border = "solid white 1px";
-	rightBorderDiv.style.padding = "7px";
+	rightBorderDiv.style.padding = "5px";
+	
+	var bankInfoTitle = document.createElement("div");
+	bankInfoTitle.innerHTML = "Nearest Omnibank branches:<br />";
+	bankInfoTitle.style.fontSize = "90%";
+	bankInfoTitle.style.lineHeight = "150%";
+	rightBorderDiv.appendChild(bankInfoTitle);
 	
 	//Display closest bank info.
 	var bankInfo = document.createElement("div");
-	bankInfo.innerHTML = "Nearest Omnibank branches:<br />";
 	bankInfo.style.fontSize = "75%";
+	bankInfo.style.lineHeight = "150%";
 	rightBorderDiv.appendChild(bankInfo);
 	
 	rightBorderDiv.appendChild(document.createElement("hr"));
 	
+	function displayBanks(banks, fromX, fromY)
+	{
+		var bankString = "";
+		
+		for (var i = 0; i < banks.length; i++)
+		{
+			var bank = banks[i];
+			
+			var bankX = bank[1];
+			var bankY = bank[2];
+			
+			var streetX = bankX / 2;
+			var streetY = bankY / 2;
+			
+			//Determine distances on x and y coordinates.
+			var directionX = bankX - fromX;
+			var directionY = bankY - fromY;
+			
+			var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
+			
+			bankString += streetNames;
+			bankString += ", ";
+			bankString += assignDirection(directionX, directionY);
+			bankString += "<br />";
+		}
+		
+		return bankString;
+	}
+	
+	bankInfo.innerHTML += displayBanks(nearestBanks, currentX, currentY);
+	
+	var stationInfoTitle = document.createElement("div");
+	stationInfoTitle.innerHTML = "Nearest transit station:<br />";
+	stationInfoTitle.style.fontSize = "90%";
+	stationInfoTitle.style.lineHeight = "150%";
+	rightBorderDiv.appendChild(stationInfoTitle);
+	
 	//Display closest transit info
 	var stationInfo = document.createElement("div");
-	stationInfo.innerHTML = "Nearest transit station:<br />";
 	stationInfo.style.fontSize = "75%";
+	stationInfo.style.lineHeight = "150%";
 	rightBorderDiv.appendChild(stationInfo);
-	
-	for (var i = 0; i < nearestBanks.length; i++)
-	{
-		var bank = nearestBanks[i];
-		
-		var bankX = bank[1];
-		var bankY = bank[2];
-
-		var streetX = bankX / 2;
-		var streetY = bankY / 2;
-
-		//Determine distances on x and y coordinates.
-		var directionX = bankX - currentX;
-		var directionY = bankY - currentY;
-		
-		var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
-		
-		bankInfo.innerHTML += streetNames;
-		bankInfo.innerHTML += ", ";
-		bankInfo.innerHTML += assignDirection(directionX, directionY);
-		bankInfo.innerHTML += "<br />";
-	}
 	
 	//Station info
 	var stationDistance = 200; //actual width and height of grid
@@ -872,7 +1312,6 @@ if (isLoginView == false)
 	}
 	
 	//Display station info.
-	
 	var stationX = nearestStation[1];
 	var stationY = nearestStation[2];
 	
@@ -895,11 +1334,14 @@ if (isLoginView == false)
 	
 	
 	
-	//	+ Move calculator
-	
+	//	+ Distance calculator
+	//TO-DO: comment this section!
 	var moveCalculatorDiv = document.createElement("div");
+	moveCalculatorDiv.style.border = "solid white 1px";
+	moveCalculatorDiv.style.padding = "5px";
 	rightSideDiv.appendChild(document.createElement("br"));
 	rightSideDiv.appendChild(moveCalculatorDiv);
+	rightSideDiv.appendChild(document.createElement("br"));
 	
 	var xStart = document.createElement("select");
 	var yStart = document.createElement("select");
@@ -907,17 +1349,18 @@ if (isLoginView == false)
 	var xEnd = document.createElement("select");
 	var yEnd = document.createElement("select");
 	var dirEnd = document.createElement("select");
-	xStart.style.width = "95px";
-	yStart.style.width = "60px";
-	dirStart.style.width = "50px";
-	xEnd.style.width = "95px";
-	yEnd.style.width = "60px";
-	dirEnd.style.width = "50px";
+	xStart.style.width = "92px";
+	yStart.style.width = "58px";
+	dirStart.style.width = "43px";
+	xEnd.style.width = "92px";
+	yEnd.style.width = "58px";
+	dirEnd.style.width = "43px";
 	var moveTitleDiv = document.createElement("div");
 	var distanceDiv = document.createElement("div");
 	moveTitleDiv.innerHTML = "Distance calculator:";
-	moveTitleDiv.style.fontSize = "75%";
+	moveTitleDiv.style.fontSize = "90%";
 	distanceDiv.style.fontSize = "75%";
+	distanceDiv.innerHTML = "<br />";
 	
 	var setStartCurrentButton = document.createElement("button");
 	setStartCurrentButton.innerHTML = "Set start to current location";
@@ -948,7 +1391,7 @@ if (isLoginView == false)
 	moveCalculatorDiv.appendChild(yEnd);
 	moveCalculatorDiv.appendChild(dirEnd);
 	moveCalculatorDiv.appendChild(distanceDiv);
-	
+	moveCalculatorDiv.appendChild(document.createElement("br"));
 	
 	var selectDirs = [xStart, yStart, dirStart, xEnd, yEnd, dirEnd];
 	for (var i = 0; i < selectDirs.length; i++)
@@ -1056,13 +1499,343 @@ if (isLoginView == false)
 	setIfNotNull(yEnd, "yEnd");
 	setIfNotNull(dirEnd, "dirEnd");
 	
+	var findLandmarkDiv = document.createElement("div");
+	rightSideDiv.appendChild(findLandmarkDiv);
+	findLandmarkDiv.innerHTML = "<span style='font-size: 90%'>Landmark finder:</span>";
+	findLandmarkDiv.style.border = "solid white 1px";
+	findLandmarkDiv.style.padding = "5px";
+	findLandmarkDiv.style.fontSize = "100%";
+	
+	//Set findStartEnd localStorage.
+	function updateFindStartStorage(event)
+	{
+		localStorage.setItem("findStartEnd", event.target.checked ? 0 : 1)
+	}
+	function updateFindEndStorage(event)
+	{
+		localStorage.setItem("findStartEnd", event.target.checked ? 1 : 0)
+	}
+	var findStartEndForm     = document.createElement("form"); 
+	findLandmarkDiv.appendChild(findStartEndForm);
+	findStartEndForm.innerHTML = 'Find near <input type = "radio" name = "findStartEnd" value = "start" id = "start" checked tabindex = "-1"/><label for = "start">start</label>\
+							      <input type = "radio" name = "findStartEnd" value = "end" id = "end" tabindex = "-1"/><label for = "end">end</label>';
+	var radioStart = findStartEndForm.children[0];
+	var radioEnd   = findStartEndForm.children[2];
+	findStartEndForm.style.fontSize = "75%";
+	radioStart.checked = localStorage.getItem("findStartEnd") == 1 ? false : true;
+	radioEnd.checked   = localStorage.getItem("findStartEnd") == 1 ? true : false;
+	radioStart.onchange = updateFindStartStorage;
+	radioEnd.onchange   = updateFindEndStorage;
+	
+	var findBanksButton = document.createElement("button");
+	findBanksButton.innerHTML = "Find Omnibank branch";
+	findLandmarkDiv.appendChild(findBanksButton);
+	findBanksButton.addEventListener("click", function(event)
+	{
+		var searchX;
+		var searchY;
+		if (radioStart.checked)
+		{
+			var xStartExact = xStart.value;
+			var yStartExact = yStart.value;
+			if (dirStart.value.indexOf("x") != -1) xStartExact++;
+			if (dirStart.value.indexOf("y") != -1) yStartExact++;
+			searchX = xStartExact;
+			searchY = yStartExact;
+		}
+		else if (radioEnd.checked)
+		{
+			var xEndExact = xEnd.value;
+			var yEndExact = yEnd.value;
+			if (dirEnd.value.indexOf("x") != -1) xEndExact++;
+			if (dirEnd.value.indexOf("y") != -1) yEndExact++;
+			searchX = xEndExact;
+			searchY = yEndExact;
+		}
+		
+		var banksNearStart = findNearestBanks(searchX, searchY, 2);
+		
+		displayLandmarkDiv.innerHTML = displayBanks(banksNearStart, searchX, searchY);
+	});
+	
+	var displayLandmarkDiv = document.createElement("div");
+	findLandmarkDiv.appendChild(displayLandmarkDiv);
+	displayLandmarkDiv.style.fontSize = "75%";
+	displayLandmarkDiv.innerHTML = "<br /><br />";
+	
+	
+	rightSideDiv.appendChild(document.createElement("br"));
 	
 	
 	
-	// + Form access
 	
-	//List forms.
-	var forms = document.getElementsByTagName("form");
+	var tabulation = document.createElement("ul");
+	rightSideDiv.appendChild(tabulation);
+	tabulation.style.listStyle = "none";
+	tabulation.style.padding = "0";
+	tabulation.style.margin = "0";
+	tabulation.style.position = "relative";
+	tabulation.style.fontSize = "90%";
+	
+	var line = document.createElement("div");
+	tabulation.appendChild(line);
+	line.innerHTML = "&nbsp;";
+	line.style.position = "absolute";
+	line.style.width = "100%";
+	line.style.border = "0px solid";
+	line.style.borderColor = "white";
+	line.style.borderBottomWidth = "1px";
+	line.style.marginTop = "-1px";
+	line.style.padding = "0";
+	line.style.padding = "5px 0 3px 0";
+	
+	function applyTabStyles(tab)
+	{
+		tab.style.float = "left";
+		tab.style.border = "1px solid";
+		tab.style.borderColor = "white";
+		tab.style.borderBottomWidth = "0";
+		tab.style.margin = "0 5px 0 0";
+		tab.style.padding = "5px 5px 3px 5px";
+		tab.style.position = "relative";
+		tab.style.background = "black";
+	}
+	
+	function getHash(url)
+	{
+		var hashPos = url.lastIndexOf ("#");
+		return url.substring(hashPos + 1);
+	}
+	
+	function clickedTab(event)
+	{
+		var link = event.target;
+		var id = getHash(link.getAttribute('href'));
+		for (var i = 0; i < tabulation.children.length; i++)
+		{
+			var tab = tabulation.children[i];
+			if (tab.children[0] == link)
+			{
+				tab.style.borderBottomWidth = "0px";
+				tab.style.paddingBottom = "4px";
+			}
+			else
+			{
+				tab.style.borderBottomWidth = "1px";
+				tab.style.paddingBottom = "3px";
+			}
+		}
+		
+		for (var i = 0; i < tabPages.children.length; i++)
+		{
+			var content = tabPages.children[i];
+			content.style.display = (content.id == id) ? "block" : "none";
+		}
+	}
+	
+	var tabA = document.createElement("li");
+	tabulation.appendChild(tabA);
+	var tabAAnchor = document.createElement("a");
+	tabA.appendChild(tabAAnchor);
+	tabAAnchor.href = "#tabA";
+	tabAAnchor.innerHTML = "Item calculator";
+	//tabAAnchor.style.fontSize = "150%";
+	tabAAnchor.style.textDecoration = "none";
+	tabAAnchor.addEventListener("click", clickedTab);
+	applyTabStyles(tabA);
+	tabA.style.paddingBottom = "4px";
+	
+	var tabB = document.createElement("li");
+	tabulation.appendChild(tabB);
+	var tabBAnchor = document.createElement("a");
+	tabB.appendChild(tabBAnchor);
+	tabBAnchor.href = "#tabB";
+	tabBAnchor.innerHTML = "Shopping list";
+	tabBAnchor.style.textDecoration = "none";
+	tabBAnchor.addEventListener("click", clickedTab);
+	applyTabStyles(tabB);
+	
+	var tabPages = document.createElement("div");
+	rightSideDiv.appendChild(tabPages);
+	tabPages.style.border = "1px solid";
+	tabPages.style.borderTopWidth = "0px";
+	tabPages.style.clear = "both";
+	//tabPages.style.width = "250px";
+	
+	var shopCalcDiv = document.createElement("div");
+	tabPages.appendChild(shopCalcDiv);
+	shopCalcDiv.id = "tabA";
+	shopCalcDiv.style.padding = "5px";
+	shopCalcDiv.style.fontSize = "100%";
+	
+	function addAlignedMenu(label, element)
+	{
+		var td = document.createElement("td");
+		td.style.display = "block";
+		td.style.width = "190px";
+		td.style.fontSize = "75%";
+		td.style.verticalAlign = "middle";
+		shopCalcDiv.appendChild(td);
+		
+		var tdSpan = document.createElement("span");
+		td.appendChild(tdSpan);
+		tdSpan.style.fontSize = "100%";
+		tdSpan.appendChild(document.createTextNode(label));
+		
+		td.appendChild(element);
+		element.style.float = "right";
+		
+		var br = document.createElement("div");
+		br.style.clear = "both";
+		shopCalcDiv.appendChild(br);
+	}
+	
+	var shopSelect = document.createElement("select");
+	addAlignedMenu("Shop: ", shopSelect);
+	shopSelect.style.width = "135px";
+	
+	var option = document.createElement("option");
+	shopSelect.appendChild(option);
+	option.text = "Select a shop";
+	
+	for (var i = 0; i < shopList.length; i++)
+	{
+		var category = shopList[i];
+		
+		var optgroup = document.createElement("optgroup");
+		shopSelect.appendChild(optgroup);
+		optgroup.label = category.name;
+		
+		for (var j = 0; j < category.shops.length; j++)
+		{
+			var option = document.createElement("option");
+			optgroup.appendChild(option);
+			option.text = category.shops[j];
+			option.value = category.shops[j];
+		}
+	}
+	
+	var charismaSelect = document.createElement("select");
+	addAlignedMenu("Charisma: ", charismaSelect);
+	charismaSelect.innerHTML = "<option>Charisma level</option><option value='0'>No Charisma</option><option value='1'>Charisma 1</option><option value='2'>Charisma 2</option><option value='3'>Charisma 3</option>";
+	charismaSelect.style.width = "135px";
+	
+	var itemSelect = document.createElement("select");
+	addAlignedMenu("Item: ", itemSelect);
+	itemSelect.style.width = "135px";
+	
+	shopSelect.addEventListener("change", function()
+	{
+		while (itemSelect.lastChild)
+		{
+			itemSelect.removeChild(itemSelect.lastChild);
+		}
+		
+		var option = document.createElement("option");
+		option.text = "Select an item";
+		itemSelect.appendChild(option);
+		
+		
+		for (var i = 0; i < itemList.length; i++)
+		{
+			var shop = itemList[i];
+			var shopName = shop.name;
+			if (shopName == shopSelect.value)
+			{
+				for (var j = 0; j < shop.items.length; j++)
+				{
+					var option = document.createElement("option");
+					option.text = shop.items[j].name;
+					option.value = shop.items[j].name;
+					itemSelect.appendChild(option);
+				}
+			}
+		}
+	});
+	
+	var quantityBlock = document.createElement("div");
+	addAlignedMenu("Quantity: ", quantityBlock);
+	quantityBlock.style.display = "inline-block";
+	quantityBlock.style.fontSize = "100%";
+	
+	var itemQuantityInput = document.createElement("input");
+	quantityBlock.appendChild(itemQuantityInput);
+	itemQuantityInput.type = "number";
+	itemQuantityInput.value = "1";
+	itemQuantityInput.style.width = "55px";
+	itemQuantityInput.min = "1";
+	itemQuantityInput.max = "9999";
+	
+	var itemPriceDisplay = document.createElement("div");
+	quantityBlock.appendChild(itemPriceDisplay);
+	itemPriceDisplay.style.display = "inline-block";
+	itemPriceDisplay.style.width = "80px";
+	itemPriceDisplay.style.textAlign = "right";
+	itemPriceDisplay.style.fontSize = "100%";
+	itemPriceDisplay.innerHTML = "";
+	
+	function updateItemPrice()
+	{
+		var itemPrice;
+		for (var i = 0; i < itemList.length; i++)
+		{
+			var shop = itemList[i];
+			var shopName = shop.name;
+			if (shopName == shopSelect.value)
+			{
+				for (var j = 0; j < shop.items.length; j++)
+				{
+					var item = shop.items[j];
+					if (item.name == itemSelect.value)
+					{
+						var charismaLevel = parseInt(charismaSelect.value);
+						if (item.prices.length == 1)
+						{
+							itemPrice = item.prices[0];
+						}
+						else
+						{
+							itemPrice = item.prices[charismaLevel];
+						}
+					}
+				}
+			}
+		}
+		
+		var quantity = parseInt(itemQuantityInput.value);
+		if (quantity > 10000) 
+		{
+			itemQuantityInput.value = 10000;
+			quantity = 10000;
+		}
+		
+		var newPrice = itemPrice * quantity;
+		
+		if (isNaN(newPrice))
+		{
+			itemPriceDisplay.innerHTML = "Finish selection";
+		}
+		else
+		{
+			itemPriceDisplay.innerHTML = newPrice + " coins";
+		}
+	}
+	
+	shopSelect.addEventListener("change", updateItemPrice);
+	charismaSelect.addEventListener("change", updateItemPrice);
+	itemSelect.addEventListener("change", updateItemPrice);
+	itemQuantityInput.addEventListener("input", updateItemPrice);
+	
+	//var addItemButton = document.createElement("button");
+	
+	var shopListDiv = document.createElement("div");
+	tabPages.appendChild(shopListDiv);
+	shopListDiv.id = "tabB";
+	shopListDiv.innerHTML = "<span style='font-size: 90%;'>Shopping list: </span><br /><br />";
+	shopListDiv.style.padding = "5px";
+	shopListDiv.style.fontSize = "100%";
+	shopListDiv.style.display = "none";
+	
 	
 	
 	
@@ -1097,17 +1870,19 @@ if (isLoginView == false)
 	}
 	
 	//Auto-enable double garlic spray.
-	for (var i = 0; i < forms.length; i++)
+	if (doubleGS.checked)
 	{
-		var form = forms[i];
-		
-		//Find garlic spray form, provided a checkbox to use two.
-		if (form.action.value == "use" && form.target.value == "33" && form.x)
+		for (var i = 0; i < forms.length; i++)
 		{
-			form.x.checked = true;
+			var form = forms[i];
+		
+			//Find garlic spray form, provided a checkbox to use two.
+			if (form.action.value == "use" && form.target.value == "33" && form.x)
+			{
+				form.x.checked = true;
+			}
 		}
 	}
-	
 	
 	
 	
@@ -1122,9 +1897,13 @@ if (isLoginView == false)
 		
 		//If CTRL key is pressed, temporarily disable keybinding, i.e. CTRL+C to copy hits.
 		if (event.ctrlKey) return;
+		//If CMD key is pressed, temporarily disable keybinding, i.e. CMD+C to copy hits.
+		if (event.metaKey) return;
 		
 		//If a text form is active, temporarily disable keybinding, i.e. selecting Teleport location.
 		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "text") return;
+		//If a password form is active, temporarily disable keybinding, i.e. changing your password in MyVamp.
+		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "password") return;
 		//if (document.activeElement == document.body) return;
 		
 		//If a select form, i.e. dropdown, is active, temporarily disable actions linked to keybinding. 
@@ -1183,6 +1962,15 @@ if (isLoginView == false)
 			for (var i = 0; i < forms.length; i++)
 			{
 				var form = forms[i];
+				if (form.action.value == "drink" && form.t.value == "1")
+				{
+					form.submit();
+					return true;
+				}
+			}
+			for (var i = 0; i < forms.length; i++)
+			{
+				var form = forms[i];
 				if (form.action.value == "drink" && form.t.value == "0")
 				{
 					form.submit();
@@ -1201,8 +1989,34 @@ if (isLoginView == false)
 				var link = links[i];
 				if (link.innerHTML == action) //"drink" or "rob"
 				{
-					window.location.href = link.href;
-					return;
+					//save vamp, find vamp name in href target
+					
+					var url = link.href;
+					url = url.substring(url.indexOf("target=") + 7);
+					var vampName = url.substring(0, url.indexOf("&"));
+					console.log("attacked " + vampName);
+					
+					//Compare to list of vampsAttacked.
+					var foundMatch = false;
+					for (var j = 0; j < vampsAttacked.length; j++)
+					{
+						var vampAttacked = vampsAttacked[j];
+						//If the current vampire under attack matches a previously attacked vampire, end search, update entry.
+						if (vampName == vampAttacked)
+						{
+							foundMatch = true;
+							break;
+						}
+					}
+					
+					//If no match found, save new entry.
+					if (foundMatch == false)
+					{
+						vampsAttacked.push(vampName);
+						localStorage.setItem("vampsAttacked" + userName, vampsAttacked.join(","));
+						window.location.href = link.href;
+						return;
+					}
 				}
 			}
 		}
@@ -1305,3 +2119,4 @@ if (isLoginView == false)
 		event.preventDefault();
 	});
 }
+
