@@ -45,6 +45,8 @@
 
 
 
+document.body.style.display = "block";
+
 
 //	+ Setup
 //	Data initialization.
