@@ -31,7 +31,7 @@
 //		- Find banks (pubs coming soon!) near given intersection
 //	+ Shopping calculator
 //		- Check item price from all moving and stationary shops as well as extended lairs
-//		- Coming soon: shopping list creation!
+//		- Shopping list creator
 //	+ War mode
 //		- Autoloading "More Commands"
 //		- Eliminates unnecessary speaking (say and shout), telepathy and giving commands
@@ -124,7 +124,8 @@ function getCookie(name)
 //Call to delete cookie.
 function deleteCookie(name)
 {
-  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+	//Expiration date does not get sent to server.
+	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
 function readArrayFromLocalStorage(name, separator)
@@ -311,9 +312,9 @@ if (isLoginView == false)
 		financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
 		inventoryHR.style.display = displayPowers.checked ? "block" : "none";
 	}
-
 	
-		
+	
+	
 	
 	//	+ Left sidebar
 	
@@ -413,7 +414,6 @@ if (isLoginView == false)
 	radioWASDiv.style.backgroundColor = "black";
 	radioWASDiv.style.fontSize = "100%";
 	
-	
 	radioQWEDiv.title = "Movement controls (relative to S):<br /> \
 						Q: northwest<br /> \
 						W: north<br /> \
@@ -437,7 +437,6 @@ if (isLoginView == false)
 	warModeDiv.title = "Autoloads more commands after moving.<br /> \
 						Hides say, shout, telepathy and give commands.<br /> \
 						Disables B and R keybinding.";
-	
 	
 	warModeDiv.style.fontSize = "100%";
 	doubleGSDiv.style.fontSize = "100%";
@@ -1129,6 +1128,7 @@ if (isLoginView == false)
 	{
 		financialsBox.innerHTML += "Bank account: " + coinsIn;
 	}
+	
 	financialsBox.appendChild(financialsHR);
 	inventoryBox.innerHTML += "Inventory: " + localStorage.getItem("inventory" + userName);
 	inventoryBox.appendChild(inventoryHR);
@@ -2356,8 +2356,6 @@ if (isLoginView == false)
 		//If a select form, i.e. dropdown, is active, temporarily disable actions linked to keybinding. 
 		if (document.activeElement.tagName.toLowerCase() == "select") return;
 		
-		//console.log("key pressed: ", event.keyCode);
-		
 		function doMove(moveIndex)
 		{
 			var space = spaces[moveIndex];
@@ -2468,11 +2466,9 @@ if (isLoginView == false)
 			}
 		}
 		
-		//var forms = document.getElementsByTagName("form");
-		
 		switch(event.keyCode)
 		{
-			case 66: //b: biter
+			case 66: //b: bite
 				if (!warMode.checked) //No Human found!
 				{
 					if (!doHuman())
@@ -2558,12 +2554,11 @@ if (isLoginView == false)
 			//case xx: //xxxxxxx: refresh 
 				//document.location.reload(true);
 				//break;
+			
 			//If no keybinding matches found, don't prevent default behavior, i.e. let tab key work to move between forms.
 			default: return;
 		}
 		
-		//console.log("prevent default behavior");
 		event.preventDefault();
 	});
 }
-
