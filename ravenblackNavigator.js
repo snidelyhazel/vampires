@@ -29,6 +29,9 @@
 //			= Includes ability to set starting point to current location
 //	+ Landmark finder
 //		- Find banks (pubs coming soon!) near given intersection
+//	+ Shopping calculator
+//		- Check item price from all moving and stationary shops as well as extended lairs
+//		- Coming soon: shopping list creation!
 //	+ War mode
 //		- Autoloading "More Commands"
 //		- Eliminates unnecessary speaking (say and shout), telepathy and giving commands
@@ -38,7 +41,7 @@
 //		- Tracking of hits by and against
 //			= Includes biting and robbing
 //
-//	+ Coming soon: Instant updating of pocket change and inventory, shopping calculator!
+//	+ Coming soon: Instant updating of pocket change and inventory!
 
 
 
@@ -109,7 +112,8 @@ function getCookie(name)
 {
 	name = name + "=";
 	var ca = document.cookie.split(';');
-	for (var i = 0; i < ca.length; i++) {
+	for (var i = 0; i < ca.length; i++)
+	{
 		var c = ca[i];
 		while (c.charAt(0) == ' ') c = c.substring(1);
 		if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
@@ -118,22 +122,26 @@ function getCookie(name)
 }
 
 //Call to delete cookie.
-function deleteCookie( name ) {
+function deleteCookie(name)
+{
   document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
+function readArrayFromLocalStorage(name, separator)
+{
+	var arrayAsString = localStorage.getItem(name);
+	if (arrayAsString == null || arrayAsString == "")
+	{
+		return [];
+	}
+	else
+	{
+		return arrayAsString.split(separator);
+	}
+}
+
 //Get logins from local storage and store in an array.
-var allLogins = localStorage.getItem("logins");
-if (allLogins == null)
-{
-	//If no logins stored, make an array.
-	allLogins = [];
-}
-else
-{
-	//If logins stored, separate by comma. 
-	allLogins = allLogins.split(",");
-}
+var allLogins = readArrayFromLocalStorage("logins", ",");
 
 //If login is successful, save login.
 if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
@@ -168,17 +176,10 @@ if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
 }
 
 //Get vampires attacked recently.
-var vampsAttacked = localStorage.getItem("vampsAttacked" + userName);
-if (vampsAttacked == null)
-{
-	//If no vampsAttacked, make an array.
-	vampsAttacked = [];
-}
-else
-{
-	//If vampsAttacked stored, separate by comma. 
-	vampsAttacked = vampsAttacked.split(",");
-}
+var vampsAttacked = readArrayFromLocalStorage("vampsAttacked" + userName, ",");
+
+//Create localStorage for contents of shopping cart. 
+var shoppingCart = readArrayFromLocalStorage("shoppingCart" + userName, ";");
 
 
 
@@ -310,9 +311,9 @@ if (isLoginView == false)
 		financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
 		inventoryHR.style.display = displayPowers.checked ? "block" : "none";
 	}
+
 	
-	
-	
+		
 	
 	//	+ Left sidebar
 	
@@ -636,7 +637,7 @@ if (isLoginView == false)
 	
 	
 	
-	
+	//	+ Hit-tracker
 	leftSideDiv.appendChild(document.createElement("br"));
 	leftSideDiv.appendChild(document.createElement("br"));
 	
@@ -696,11 +697,6 @@ if (isLoginView == false)
 	scrollingDiv.style.fontSize = "75%";
 	leftSideDiv.appendChild(document.createElement("br"));
 	
-	
-	
-	
-	//	+ Hit-tracking
-	
 	//Initialize hit-tracking.
 	if (localStorage.getItem("hittracker" + userName) == null)
 	{
@@ -708,6 +704,7 @@ if (isLoginView == false)
 	}
 	
 	//Store hit-tracking.
+	//TO-DO: comment more!
 	function recordHit(element, dealtIt)
 	{
 		var message;
@@ -789,6 +786,7 @@ if (isLoginView == false)
 				var bankForm = borderDiv.childNodes[i + 1];
 				var pocketString = bankForm.childNodes[bankForm.childNodes.length - 1].data;
 				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+				if (coinsOn == "no") coinsOn = "0";
 				localStorage.setItem("coinsIn" + userName, coinsIn);
 				localStorage.setItem("coinsOn" + userName, coinsOn);
 			}
@@ -809,6 +807,7 @@ if (isLoginView == false)
 	//	+ Vamp info
 	
 	//Pull from My Vampire page.
+	//TO-DO: comment more!
 	if (isMyVampView)
 	{
 		var foundQuest = false;
@@ -909,6 +908,7 @@ if (isLoginView == false)
 	}
 	
 	//Handler for pocket change after purchasing items.
+	//TO-DO: comment more!
 	for (var i = 0; i < forms.length; i++)
 	{
 		var form = forms[i];
@@ -922,6 +922,7 @@ if (isLoginView == false)
 			var shopBalance = shopDiv.childNodes[shopDiv.childNodes.length-1];
 			var pocketString = shopBalance.data;
 			var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+			if (coinsOn == "no") coinsOn = "0";
 			localStorage.setItem("coinsOn" + userName, coinsOn);
 			
 			//Purchase button is form's third-last grandchild.
@@ -1044,8 +1045,6 @@ if (isLoginView == false)
 	
 	
 	
-	
-	
 	//	+ Right sidebar
 	
 	//Create div container for checkbox.
@@ -1056,7 +1055,6 @@ if (isLoginView == false)
 	rightSideDiv.style.float = "right";
 	//Define position of div container.
 	rightSideDiv.style.position = "relative";
-	//Create separate div for hit-tracking.
 	
 	
 	
@@ -1179,6 +1177,7 @@ if (isLoginView == false)
 	currentY = parseInt(localStorage.getItem("currentY" + userName));
 	
 	//Bank info
+	//TO-DO: comment this section!
 	function findNearestBanks(coordX, coordY, howManyBanks)
 	{
 		var bankDistances = [];
@@ -1324,7 +1323,7 @@ if (isLoginView == false)
 	var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
 	
 	stationInfo.innerHTML += nearestStation[0];
-	stationInfo.innerHTML += ", ";
+	stationInfo.innerHTML += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
 	stationInfo.innerHTML += streetNames;
 	stationInfo.innerHTML += ", ";
 	stationInfo.innerHTML += assignDirection(directionX, directionY);
@@ -1568,7 +1567,8 @@ if (isLoginView == false)
 	
 	
 	
-	
+	//	+ Shopping calculator
+	//TO-DO: comment section!
 	var tabulation = document.createElement("ul");
 	rightSideDiv.appendChild(tabulation);
 	tabulation.style.listStyle = "none";
@@ -1607,10 +1607,12 @@ if (isLoginView == false)
 		return url.substring(hashPos + 1);
 	}
 	
+	var currentTab = "shoppingCalc";
+	
 	function clickedTab(event)
 	{
 		var link = event.target;
-		var id = getHash(link.getAttribute('href'));
+		currentTab = getHash(link.getAttribute('href'));
 		for (var i = 0; i < tabulation.children.length; i++)
 		{
 			var tab = tabulation.children[i];
@@ -1629,31 +1631,42 @@ if (isLoginView == false)
 		for (var i = 0; i < tabPages.children.length; i++)
 		{
 			var content = tabPages.children[i];
-			content.style.display = (content.id == id) ? "block" : "none";
+			content.style.display = (content.id == currentTab) ? "block" : "none";
+		}
+		
+		if (currentTab == "shoppingList")
+		{
+			displayShoppingList();
+		}
+		else if (currentTab == "shoppingCalc")
+		{
+			redisplayShoppingCalc();
 		}
 	}
 	
-	var tabA = document.createElement("li");
-	tabulation.appendChild(tabA);
-	var tabAAnchor = document.createElement("a");
-	tabA.appendChild(tabAAnchor);
-	tabAAnchor.href = "#tabA";
-	tabAAnchor.innerHTML = "Item calculator";
-	//tabAAnchor.style.fontSize = "150%";
-	tabAAnchor.style.textDecoration = "none";
-	tabAAnchor.addEventListener("click", clickedTab);
-	applyTabStyles(tabA);
-	tabA.style.paddingBottom = "4px";
+	var shoppingCalc = document.createElement("li");
+	tabulation.appendChild(shoppingCalc);
+	var shoppingCalcAnchor = document.createElement("a");
+	shoppingCalc.appendChild(shoppingCalcAnchor);
+	shoppingCalcAnchor.href = "#shoppingCalc";
+	shoppingCalcAnchor.innerHTML = "Item calculator";
+	//shoppingCalcAnchor.style.fontSize = "150%";
+	shoppingCalcAnchor.style.textDecoration = "none";
+	shoppingCalcAnchor.addEventListener("click", clickedTab);
+	applyTabStyles(shoppingCalc);
+	shoppingCalc.style.paddingBottom = "4px";
 	
-	var tabB = document.createElement("li");
-	tabulation.appendChild(tabB);
-	var tabBAnchor = document.createElement("a");
-	tabB.appendChild(tabBAnchor);
-	tabBAnchor.href = "#tabB";
-	tabBAnchor.innerHTML = "Shopping list";
-	tabBAnchor.style.textDecoration = "none";
-	tabBAnchor.addEventListener("click", clickedTab);
-	applyTabStyles(tabB);
+	var shoppingList = document.createElement("li");
+	tabulation.appendChild(shoppingList);
+	var shoppingListAnchor = document.createElement("a");
+	shoppingList.appendChild(shoppingListAnchor);
+	shoppingListAnchor.href = "#shoppingList";
+	shoppingListAnchor.innerHTML = "Shopping list";
+	shoppingListAnchor.style.textDecoration = "none";
+	shoppingListAnchor.addEventListener("click", clickedTab);
+	applyTabStyles(shoppingList);
+	shoppingList.style.float = "right";
+	shoppingList.style.marginRight = "0px";
 	
 	var tabPages = document.createElement("div");
 	rightSideDiv.appendChild(tabPages);
@@ -1664,7 +1677,7 @@ if (isLoginView == false)
 	
 	var shopCalcDiv = document.createElement("div");
 	tabPages.appendChild(shopCalcDiv);
-	shopCalcDiv.id = "tabA";
+	shopCalcDiv.id = "shoppingCalc";
 	shopCalcDiv.style.padding = "5px";
 	shopCalcDiv.style.fontSize = "100%";
 	
@@ -1688,10 +1701,12 @@ if (isLoginView == false)
 		var br = document.createElement("div");
 		br.style.clear = "both";
 		shopCalcDiv.appendChild(br);
+		
+		return td;
 	}
 	
 	var shopSelect = document.createElement("select");
-	addAlignedMenu("Shop: ", shopSelect);
+	var shopAlignedMenu = addAlignedMenu("Shop: ", shopSelect);
 	shopSelect.style.width = "135px";
 	
 	var option = document.createElement("option");
@@ -1715,16 +1730,11 @@ if (isLoginView == false)
 		}
 	}
 	
-	var charismaSelect = document.createElement("select");
-	addAlignedMenu("Charisma: ", charismaSelect);
-	charismaSelect.innerHTML = "<option>Charisma level</option><option value='0'>No Charisma</option><option value='1'>Charisma 1</option><option value='2'>Charisma 2</option><option value='3'>Charisma 3</option>";
-	charismaSelect.style.width = "135px";
-	
 	var itemSelect = document.createElement("select");
 	addAlignedMenu("Item: ", itemSelect);
 	itemSelect.style.width = "135px";
 	
-	shopSelect.addEventListener("change", function()
+	function setupItemMenu()
 	{
 		while (itemSelect.lastChild)
 		{
@@ -1748,35 +1758,96 @@ if (isLoginView == false)
 					option.text = shop.items[j].name;
 					option.value = shop.items[j].name;
 					itemSelect.appendChild(option);
+					if (localStorage.getItem("itemSelect" + userName) == option.value)
+					{
+						itemSelect.value = option.value;
+					}
 				}
 			}
 		}
-	});
+	}
+	
+	//Reset item menu when shop changes:
+	shopSelect.addEventListener("change", setupItemMenu);
 	
 	var quantityBlock = document.createElement("div");
-	addAlignedMenu("Quantity: ", quantityBlock);
-	quantityBlock.style.display = "inline-block";
+	shopCalcDiv.appendChild(quantityBlock);
+	quantityBlock.style.clear = "both";
+	//addAlignedMenu("Quantity: ", quantityBlock);
+	//quantityBlock.style.display = "inline-block";
 	quantityBlock.style.fontSize = "100%";
 	
-	var itemQuantityInput = document.createElement("input");
-	quantityBlock.appendChild(itemQuantityInput);
-	itemQuantityInput.type = "number";
-	itemQuantityInput.value = "1";
-	itemQuantityInput.style.width = "55px";
-	itemQuantityInput.min = "1";
-	itemQuantityInput.max = "9999";
+	var charismaDiv = document.createElement("div");
+	charismaDiv.style.fontSize = "75%";
+	charismaDiv.style.display = "inline-block";
+	quantityBlock.appendChild(charismaDiv);
 	
-	var itemPriceDisplay = document.createElement("div");
-	quantityBlock.appendChild(itemPriceDisplay);
-	itemPriceDisplay.style.display = "inline-block";
-	itemPriceDisplay.style.width = "80px";
-	itemPriceDisplay.style.textAlign = "right";
-	itemPriceDisplay.style.fontSize = "100%";
-	itemPriceDisplay.innerHTML = "";
+	var charismaLabel = document.createElement("div");
+	charismaLabel.style.display = "inline-block";
+	charismaLabel.style.fontSize = "100%";
+	charismaLabel.style.width = "55px";
+	charismaLabel.innerHTML = "Charisma: ";
+	charismaDiv.appendChild(charismaLabel);
 	
-	function updateItemPrice()
+	var charismaSelect = document.createElement("select");
+	//addAlignedMenu("Charisma: ", charismaSelect);
+	charismaDiv.appendChild(charismaSelect);
+	charismaSelect.innerHTML = "<option value='0'>--</option><option value='1'>1</option><option value='2'>2</option><option value='3'>3</option>";
+	charismaSelect.style.width = "45px";
+	var charismaSelectParent = charismaSelect.parentElement;
+	
+	var unitLabel = document.createElement("div");
+	unitLabel.style.display = "inline-block";
+	unitLabel.style.fontSize = "75%";
+	unitLabel.style.width = "33px";
+	unitLabel.style.textAlign = "right";
+	unitLabel.innerHTML = "Unit: ";
+	quantityBlock.appendChild(unitLabel);
+	
+	var unitPriceDiv = document.createElement("div");
+	quantityBlock.appendChild(unitPriceDiv);
+	unitPriceDiv.style.width = "55px";
+	unitPriceDiv.style.textAlign = "right";
+	unitPriceDiv.style.display = "inline-block";
+	unitPriceDiv.style.fontSize = "75%";
+	
+	
+	var itemPriceDiv = document.createElement("div");
+	shopCalcDiv.appendChild(itemPriceDiv);
+	itemPriceDiv.style.fontSize = "75%";
+	
+	var quantityLabel = document.createElement("div");
+	quantityLabel.style.display = "inline-block";
+	quantityLabel.style.fontSize = "100%";
+	quantityLabel.style.width = "56px";
+	quantityLabel.innerHTML = "Quantity: ";
+	itemPriceDiv.appendChild(quantityLabel);
+	
+	var itemQuantityEntry = document.createElement("input");
+	itemPriceDiv.appendChild(itemQuantityEntry);
+	itemQuantityEntry.type = "number";
+	itemQuantityEntry.value = "1";
+	itemQuantityEntry.style.width = "40px";
+	itemQuantityEntry.min = "1";
+	itemQuantityEntry.max = "999";
+	
+	var totalLabel = document.createElement("div");
+	totalLabel.style.display = "inline-block";
+	totalLabel.style.fontSize = "100%";
+	totalLabel.style.width = "37px";
+	totalLabel.style.textAlign = "right";
+	totalLabel.innerHTML = "Total: ";
+	itemPriceDiv.appendChild(totalLabel);
+	
+	var totalPriceDiv = document.createElement("div");
+	itemPriceDiv.appendChild(totalPriceDiv);
+	totalPriceDiv.style.width = "55px";
+	totalPriceDiv.style.textAlign = "right";
+	totalPriceDiv.style.display = "inline-block";
+	totalPriceDiv.style.fontSize = "100%";
+	
+	function calculateItemUnitPrice(itemName)
 	{
-		var itemPrice;
 		for (var i = 0; i < itemList.length; i++)
 		{
 			var shop = itemList[i];
@@ -1786,55 +1857,332 @@ if (isLoginView == false)
 				for (var j = 0; j < shop.items.length; j++)
 				{
 					var item = shop.items[j];
-					if (item.name == itemSelect.value)
+					if (item.name == itemName)
 					{
 						var charismaLevel = parseInt(charismaSelect.value);
 						if (item.prices.length == 1)
 						{
-							itemPrice = item.prices[0];
+							return item.prices[0];
 						}
 						else
 						{
-							itemPrice = item.prices[charismaLevel];
+							return item.prices[charismaLevel];
 						}
 					}
 				}
 			}
 		}
+	}
+	
+	function updateItemPrice()
+	{
+		var itemPrice = calculateItemUnitPrice(itemSelect.value);
 		
-		var quantity = parseInt(itemQuantityInput.value);
-		if (quantity > 10000) 
+		if (isNaN(itemPrice))
 		{
-			itemQuantityInput.value = 10000;
-			quantity = 10000;
+			unitPriceDiv.innerHTML = "";
+		}
+		else
+		{
+			unitPriceDiv.innerHTML = itemPrice;
+		}
+		
+		var quantity = parseInt(itemQuantityEntry.value);
+		if (quantity > 999) 
+		{
+			itemQuantityEntry.value = 999;
+			quantity = 999;
 		}
 		
 		var newPrice = itemPrice * quantity;
 		
 		if (isNaN(newPrice))
 		{
-			itemPriceDisplay.innerHTML = "Finish selection";
+			totalPriceDiv.innerHTML = "";
 		}
 		else
 		{
-			itemPriceDisplay.innerHTML = newPrice + " coins";
+			totalPriceDiv.innerHTML = newPrice;
+		}
+		
+		if (currentTab == "shoppingList")
+		{
+			displayShoppingList();
 		}
 	}
 	
 	shopSelect.addEventListener("change", updateItemPrice);
 	charismaSelect.addEventListener("change", updateItemPrice);
 	itemSelect.addEventListener("change", updateItemPrice);
-	itemQuantityInput.addEventListener("input", updateItemPrice);
+	itemQuantityEntry.addEventListener("input", updateItemPrice);
 	
-	//var addItemButton = document.createElement("button");
+	
+	setIfNotNull(shopSelect, "shopSelect" + userName);
+	shopSelect.addEventListener("change", function()
+	{
+		localStorage.setItem("shopSelect" + userName, shopSelect.value);
+	});
+	
+	//Set up the item menu on page load, but AFTER the shop is selected from localStorage:
+	setupItemMenu();
+	
+	setIfNotNull(charismaSelect, "charismaSelect" + userName);
+	charismaSelect.addEventListener("change", function()
+	{
+		localStorage.setItem("charismaSelect" + userName, charismaSelect.value);
+	});
+	
+	setIfNotNull(itemSelect, "itemSelect" + userName);
+	itemSelect.addEventListener("change", function()
+	{
+		localStorage.setItem("itemSelect" + userName, itemSelect.value);
+	});
+	
+	setIfNotNull(itemQuantityEntry, "itemQuantityEntry" + userName);
+	itemQuantityEntry.addEventListener("change", function()
+	{
+		localStorage.setItem("itemQuantityEntry" + userName, itemQuantityEntry.value);
+	});
+	
+	
+	
+	
+	
+	var addItemButton = document.createElement("button");
+	addItemButton.innerHTML = "Add to cart";
+	shopCalcDiv.appendChild(addItemButton);
+	addItemButton.addEventListener("click", function(event)
+	{
+		var isInCart = false;
+		
+		for (var i = 0; i < shoppingCart.length; i++)
+		{
+			//Separate individual items by name and quantity.
+			var inCart = shoppingCart[i].split(",");
+			//If duplicate item.
+			if (inCart[0] == itemSelect.value)
+			{
+				//Indicate that item already exists in shoppingCart.
+				isInCart = true;
+				//Add new quantity to existing quantity.
+				inCart[1] = parseInt(inCart[1]) + parseInt(itemQuantityEntry.value);
+				//Rejoin item name and quantity into a string.
+				shoppingCart[i] = inCart.join(",");
+			}
+		}
+		
+		//If not duplicate.
+		if (!isInCart)
+		{
+			//Add item to end of array.
+			shoppingCart.push(itemSelect.value + "," + itemQuantityEntry.value);
+		}
+		
+		//Set locaLStorage for shoppingCart.
+		localStorage.setItem("shoppingCart" + userName, shoppingCart.join(";"));
+	});
+	
+	var clearCartButton = document.createElement("button");
+	clearCartButton.innerHTML = "Clear cart";
+	shopCalcDiv.appendChild(clearCartButton);
+	clearCartButton.addEventListener("click", function(event)
+	{
+		localStorage.removeItem("shoppingCart" + userName);
+		shoppingCart = [];
+	});
+	
+	
+	var shopListTab = document.createElement("div");
+	tabPages.appendChild(shopListTab);
+	shopListTab.id = "shoppingList";
+	shopListTab.style.padding = "5px";
+	shopListTab.style.fontSize = "100%";
+	shopListTab.style.display = "none";
 	
 	var shopListDiv = document.createElement("div");
-	tabPages.appendChild(shopListDiv);
-	shopListDiv.id = "tabB";
-	shopListDiv.innerHTML = "<span style='font-size: 90%;'>Shopping list: </span><br /><br />";
-	shopListDiv.style.padding = "5px";
-	shopListDiv.style.fontSize = "100%";
-	shopListDiv.style.display = "none";
+	shopListDiv.style.fontSize = "75%";
+	
+	var shopButtonsDiv = document.createElement("div");
+	shopButtonsDiv.style.fontSize = "75%";
+	
+	function redisplayShoppingCalc()
+	{
+		shopCalcDiv.insertBefore(shopAlignedMenu, shopCalcDiv.firstChild);
+		quantityBlock.insertBefore(charismaDiv, quantityBlock.firstChild);
+	}
+	
+	function editButtonClicked(button)
+	{
+		var itemDiv = button.parentElement;
+		var itemName = itemDiv.childNodes[1].data;
+		
+		for (var i = 0; i < shoppingCart.length; i++)
+		{
+			var itemInfo = shoppingCart[i].split(",");
+			if (itemInfo[0] == itemName)
+			{
+				var newQuantity = prompt("Enter " + itemName + " quantity desired:", itemInfo[1]);
+				newQuantity = parseInt(newQuantity);
+				if (isNaN(newQuantity) || newQuantity < 0)
+				{
+					//alert("Not a valid quantity. Enter a positive number.")
+				}
+				else if (newQuantity == 0)
+				{
+					shoppingCart.splice(i, 1);
+				}
+				else
+				{
+					if (newQuantity > 999) newQuantity = 999;
+					itemInfo[1] = newQuantity;
+					shoppingCart[i] = itemInfo.join(",");
+				}
+				
+				break;
+			}
+		}
+		
+		localStorage.setItem("shoppingCart" + userName, shoppingCart.join(";"));
+		
+		displayShoppingList();
+	}
+	
+	function deleteButtonClicked(button)
+	{
+		var itemDiv = button.parentElement;
+		var itemName = itemDiv.childNodes[1].data;
+		
+		for (var i = 0; i < shoppingCart.length; i++)
+		{
+			var itemInfo = shoppingCart[i].split(",");
+			if (itemInfo[0] == itemName)
+			{
+				shoppingCart.splice(i, 1);
+				break;
+			}
+		}
+		
+		localStorage.setItem("shoppingCart" + userName, shoppingCart.join(";"));
+		
+		displayShoppingList();
+	}
+	
+	function createEditButton()
+	{
+		var button = document.createElement("button");
+		button.innerHTML = "Edit";
+		button.addEventListener("click", function()
+		{
+			editButtonClicked(button);
+		});
+		return button;
+	}
+	
+	function createDeleteButton()
+	{
+		var button = document.createElement("button");
+		button.innerHTML = "Delete";
+		button.addEventListener("click", function()
+		{
+			deleteButtonClicked(button);
+		});
+		return button;
+	}
+	
+	function displayShoppingList()
+	{
+		shopListTab.appendChild(shopAlignedMenu);
+		shopListTab.appendChild(charismaDiv);
+		
+		shopListTab.appendChild(shopListDiv);
+		shopListTab.appendChild(shopButtonsDiv);
+		
+		shopListDiv.innerHTML = "";
+		while (shopButtonsDiv.lastChild)
+		{
+			shopButtonsDiv.removeChild(shopButtonsDiv.lastChild);
+		}
+		
+		if (shoppingCart.length == 0)
+		{
+			shopListDiv.innerHTML += "Your cart is as empty<br />as Ravenblack's soul.";
+			return;
+		}
+		
+		var totalInCart = 0;
+		
+		var shoppingContentsDisplay = "";
+		
+		for (var i = 0; i < shoppingCart.length; i++)
+		{
+			//Separate individual items by name and quantity.
+			var inCart = shoppingCart[i].split(",");
+			
+			var itemName = inCart[0];
+			var itemQuantity = parseInt(inCart[1]);
+			
+			var itemPrice = calculateItemUnitPrice(itemName);
+			
+			var itemDiv = document.createElement("div");
+			shopButtonsDiv.appendChild(itemDiv);
+			itemDiv.style.fontSize = "100%";
+			
+			var itemSpan = document.createElement("span");
+			itemDiv.appendChild(itemSpan);
+			
+			if (itemPrice)
+			{
+				totalInCart += itemPrice * itemQuantity;
+			}
+			else
+			{
+				itemSpan.style.color = "#666666";
+			}
+			
+			itemSpan.appendChild(document.createElement("hr"));
+			itemSpan.appendChild(document.createTextNode(itemName));
+			itemSpan.appendChild(document.createElement("br"));
+			
+			if (itemPrice)
+			{
+				itemSpan.appendChild(document.createTextNode("\u00A0\u00A0\u00A0\u00A0" + itemPrice + " coins x " + itemQuantity + " = " + (itemPrice * itemQuantity) + " coins"));
+				itemSpan.appendChild(document.createElement("br"));
+			}
+			
+			var editButton = createEditButton();
+			itemSpan.appendChild(editButton);
+			
+			var deleteButton = createDeleteButton();
+			itemSpan.appendChild(deleteButton);
+		}
+		
+		if (shopSelect.value == "Eternal Aubade of Mystical Treasures")
+		{
+			shopListDiv.innerHTML += "Eternal Aubade<br />of Mystical Treasures";
+		}
+		else
+		{
+			shopListDiv.innerHTML += shopSelect.value;
+		}
+		shopListDiv.innerHTML += " | ";
+		if (charismaSelect.value == "0")
+		{
+			shopListDiv.innerHTML += "No Charisma" + "<br />";
+		}
+		else
+		{
+			shopListDiv.innerHTML += "Charisma " + charismaSelect.value + "<br />";
+		}
+		
+		shopListDiv.innerHTML += "Total: " + totalInCart + " coins<br />";
+		
+		shopListDiv.innerHTML += shoppingContentsDisplay;
+	}
+	
+	
+	
+	
+	
 	
 	
 	
