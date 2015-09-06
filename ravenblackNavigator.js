@@ -1,4 +1,5 @@
 //Welcome to the Ravenblack Navigator.
+//Citywide Beta version 0.5
 
 //Feature list:
 //	+ Multiple login support
@@ -15,7 +16,6 @@
 //		- Spacebar to load "More Commands" in all modes
 //		- Grid movement controlled by keyboard
 //			= Two convenient movement configurations
-//		- Item use controlled by keyboard with minimal mouse requirement
 //		- One-touch biting and robbing
 //			= Humans preferenced above vampires
 //	+ Vamp info
@@ -31,9 +31,8 @@
 //		- Find banks (pubs coming soon!) near given intersection
 //	+ Shopping calculator
 //		- Check item price from all moving and stationary shops as well as extended lairs
-//		- Coming soon: shopping list creation!
+//		- Shopping list creator
 //	+ War mode
-//		- Autoloading "More Commands"
 //		- Eliminates unnecessary speaking (say and shout), telepathy and giving commands
 //			= Declutters screen
 //		- Disables biting and robbing so no accidental attacks
@@ -124,7 +123,8 @@ function getCookie(name)
 //Call to delete cookie.
 function deleteCookie(name)
 {
-  document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+	//Expiration date does not get sent to server.
+	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
 function readArrayFromLocalStorage(name, separator)
@@ -276,12 +276,6 @@ if (isLoginView == false)
 		localStorage.setItem("warMode", event.target.checked ? 1 : 0);
 	}
 	
-	//Set doubleGS localStorage.
-	function updateDoubleGSStorage(event)
-	{
-		localStorage.setItem("doubleGS", event.target.checked ? 1 : 0);
-	}
-	
 	//Set loginBox localStorage.
 	function updateLoginBoxStorage(event)
 	{
@@ -311,9 +305,9 @@ if (isLoginView == false)
 		financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
 		inventoryHR.style.display = displayPowers.checked ? "block" : "none";
 	}
-
 	
-		
+	
+	
 	
 	//	+ Left sidebar
 	
@@ -346,7 +340,6 @@ if (isLoginView == false)
 	var bindKeyDiv    = document.createElement("div");
 	var radioForm     = document.createElement("form"); 
 	var warModeDiv    = document.createElement("div");
-	var doubleGSDiv   = document.createElement("div");
 	var loginBoxDiv   = document.createElement("div");
 	var vampInfoDiv   = document.createElement("div");
 	var financialsDiv = document.createElement("div");
@@ -356,7 +349,6 @@ if (isLoginView == false)
 	optionsDiv.appendChild(radioForm);
 	optionsDiv.appendChild(document.createElement("hr"));
 	optionsDiv.appendChild(warModeDiv);
-	optionsDiv.appendChild(doubleGSDiv);
 	optionsDiv.appendChild(document.createElement("hr"));
 	optionsDiv.appendChild(loginBoxDiv);
 	optionsDiv.appendChild(document.createElement("hr"));
@@ -371,7 +363,6 @@ if (isLoginView == false)
 							<div><input type = "radio" name = "keyConfig" value = "WASD-QEZX" id = "WASD-QEZX" tabindex = "-1"/> \
 							<label for = "WASD-QEZX">WASD-QEZX</label> </div>';
 	warModeDiv.innerHTML  = '<label for  = "warMode">War Mode</label><input type      = "checkbox" id = "warMode"  tabindex = "-1">';
-	doubleGSDiv.innerHTML = '<label for  = "doubleGS">Double GS</label><input type      = "checkbox" id = "doubleGS"  tabindex = "-1">';
 	loginBoxDiv.innerHTML = '<label for  = "loginBox">Save Logins</label><input type = "checkbox" id = "loginBox"  tabindex = "-1">';
 	vampInfoDiv.innerHTML = '<label>Vampire Vitals</label>';
 	financialsDiv.innerHTML = '<label for = "financials">Financials</label><input type = "checkbox" id = "financials" tabindex = "-1">';
@@ -380,13 +371,6 @@ if (isLoginView == false)
 	
 	bindKeyDiv.title = "Action controls:<br /> \
 						B to Bite, R to Rob<br /> \
-						H for Holy Water<br /> \
-						G for Garlic Spray<br /> \
-						Y for Wooden Stake<br /> \
-						U for UV Grenade (coming soon)<br /> \
-						T for SoTurn<br /> \
-						M for SoTel<br /> \
-						N for SoDisp<br /> \
 						Spacebar for More Commands";
 	
 	//Make reference to bindKey checkbox.
@@ -413,7 +397,6 @@ if (isLoginView == false)
 	radioWASDiv.style.backgroundColor = "black";
 	radioWASDiv.style.fontSize = "100%";
 	
-	
 	radioQWEDiv.title = "Movement controls (relative to S):<br /> \
 						Q: northwest<br /> \
 						W: north<br /> \
@@ -434,13 +417,10 @@ if (isLoginView == false)
 						Z: southwest<br /> \
 						X: southeast<br />";
 	
-	warModeDiv.title = "Autoloads more commands after moving.<br /> \
-						Hides say, shout, telepathy and give commands.<br /> \
+	warModeDiv.title = "Hides say, shout, telepathy and give commands.<br /> \
 						Disables B and R keybinding.";
 	
-	
 	warModeDiv.style.fontSize = "100%";
-	doubleGSDiv.style.fontSize = "100%";
 	loginBoxDiv.style.fontSize = "100%";
 	vampInfoDiv.style.fontSize = "100%";
 	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
@@ -456,13 +436,6 @@ if (isLoginView == false)
 	warMode.checked = localStorage.getItem("warMode") == 1 ? true : false;
 	//When state change, update localStorage.
 	warMode.onchange = updateWarModeStorage;
-	
-	//Make reference to doubleGS checkbox.
-	var doubleGS = doubleGSDiv.children[1];
-	//Get current doubleGS value.
-	doubleGS.checked = localStorage.getItem("doubleGS") == 1 ? true : false;
-	//When state change, update localStorage.
-	doubleGS.onchange = updateDoubleGSStorage;
 	
 	//Make reference to loginBox checkbox.
 	var loginBox = loginBoxDiv.children[1];
@@ -969,11 +942,6 @@ if (isLoginView == false)
 		}
 	}
 	
-	/*
-	TO DO:
-		handle paying money at a pub, a guild, or a shop; pub and shop shows money?
-	*/
-	
 	//Handler for pocket change after purchasing powers.
 	for (var i = 0; i < forms.length; i++)
 	{
@@ -1129,6 +1097,7 @@ if (isLoginView == false)
 	{
 		financialsBox.innerHTML += "Bank account: " + coinsIn;
 	}
+	
 	financialsBox.appendChild(financialsHR);
 	inventoryBox.innerHTML += "Inventory: " + localStorage.getItem("inventory" + userName);
 	inventoryBox.appendChild(inventoryHR);
@@ -2292,14 +2261,10 @@ if (isLoginView == false)
 	//If warMode selected.
 	if (warMode.checked)
 	{
-		//Autoload More commands.
+		//Don't show unnecessary commands.
 		for (var i = 0; i < forms.length; i++)
 		{
 			var child = forms[i];
-			if (child.firstChild.value == "move")
-			{
-				child.setAttribute("action", "/blood.pl?target=extra-commands");
-			}
 			
 			if (child.children[0].value == "say"
 			 || child.children[0].value == "telepathy"
@@ -2310,27 +2275,8 @@ if (isLoginView == false)
 				i--; //Check same index in case another undesired element shifted to that position.
 			}
 		}
-	//	if (window.location.href.indexOf("extra-commands") == -1)
-	//	{
-	//		window.location.href="/blood.pl?target=extra-commands";
-	//	}
+		//Disable B and R to bite and rob done in keybinding.
 	}
-	
-	//Auto-enable double garlic spray.
-	if (doubleGS.checked)
-	{
-		for (var i = 0; i < forms.length; i++)
-		{
-			var form = forms[i];
-		
-			//Find garlic spray form, provided a checkbox to use two.
-			if (form.action.value == "use" && form.target.value == "33" && form.x)
-			{
-				form.x.checked = true;
-			}
-		}
-	}
-	
 	
 	
 	
@@ -2347,7 +2293,7 @@ if (isLoginView == false)
 		//If CMD key is pressed, temporarily disable keybinding, i.e. CMD+C to copy hits.
 		if (event.metaKey) return;
 		
-		//If a text form is active, temporarily disable keybinding, i.e. selecting Teleport location.
+		//If a text form is active, temporarily disable keybinding, i.e. sending a Telepathic message.
 		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "text") return;
 		//If a password form is active, temporarily disable keybinding, i.e. changing your password in MyVamp.
 		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "password") return;
@@ -2355,8 +2301,6 @@ if (isLoginView == false)
 		
 		//If a select form, i.e. dropdown, is active, temporarily disable actions linked to keybinding. 
 		if (document.activeElement.tagName.toLowerCase() == "select") return;
-		
-		//console.log("key pressed: ", event.keyCode);
 		
 		function doMove(moveIndex)
 		{
@@ -2370,39 +2314,8 @@ if (isLoginView == false)
 					return;
 				}
 			}
-			/*
-			var forms = document.getElementsByTagName("form");
-			var movesCounted = 0;
-			for (var i = 0; i < forms.length; i++)
-			{
-				var form = forms[i];
-				if (form.action.value == "move") 
-				{
-					if (movesCounted == moveIndex)
-					{
-						form.submit();
-						return;
-					}
-					movesCounted++;
-				}
-			}
-			*/
 		}
 		
-		function doCommand(action, target)
-		{
-			var forms = document.getElementsByTagName("form");
-			for (var i = 0; i < forms.length; i++)
-			{
-				var form = forms[i];
-				if (form.action.value == action && form.target.value == target)
-				{
-					form.submit();
-					return;
-				}
-			}
-		}
-
 		function doHuman()
 		{
 			var forms = document.getElementsByTagName("form");
@@ -2468,11 +2381,9 @@ if (isLoginView == false)
 			}
 		}
 		
-		//var forms = document.getElementsByTagName("form");
-		
 		switch(event.keyCode)
 		{
-			case 66: //b: biter
+			case 66: //b: bite
 				if (!warMode.checked) //No Human found!
 				{
 					if (!doHuman())
@@ -2528,42 +2439,17 @@ if (isLoginView == false)
 					return;
 				}
 				break;
-			case 71: //g: garlic spray
-				{
-					//code to implement double garlic spray here
-				}
-				doCommand("use", "33");
-				break;
-			case 72: //h: holy water
-				doCommand("use", "32");
-				break;
-			case 84: //t: scroll of turning
-				doCommand("use", "0");
-				break;
-			case 89: //y: wooden stake
-				doCommand("use", "64");
-				break;
-			//case 85: //u: uv grenade
-				//doCommand("use", "x");
-				//break;
-			case 77: //m: scroll of teleportation
-				doCommand("use", "1");
-				break;
-			case 78: //n: scroll of displacement
-				doCommand("use", "2");
-				break;
 			case 32: //spacebar: 
 				window.location.href = "/blood.pl?target=extra-commands";
 				break;
 			//case xx: //xxxxxxx: refresh 
 				//document.location.reload(true);
 				//break;
+			
 			//If no keybinding matches found, don't prevent default behavior, i.e. let tab key work to move between forms.
 			default: return;
 		}
 		
-		//console.log("prevent default behavior");
 		event.preventDefault();
 	});
 }
-
