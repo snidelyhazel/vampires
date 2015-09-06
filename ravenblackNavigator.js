@@ -326,7 +326,8 @@ if (isLoginView == false)
 	leftSideDiv.style.width = "150px";
 	
 	var optionsTriangle = document.createElement("div");
-	optionsTriangle.innerHTML = "<span style='font-size: 90%;'>► Options</span>";
+	optionsTriangle.innerHTML = "► Options";
+	optionsTriangle.style.fontSize = "90%";
 	leftSideDiv.appendChild(optionsTriangle);
 	optionsTriangle.style.cursor = "pointer";
 	var optionsAreOpen = false;
@@ -513,9 +514,103 @@ if (isLoginView == false)
 		window.location.href = "/blood.pl";
 	});
 	
+	var loginsTriangle = document.createElement("div");
+	loginsTriangle.innerHTML = "► Manage Logins";
+	loginsTriangle.style.fontSize = "90%";
+	loginsTriangle.style.margin = "5px 0px";
+	leftSideDiv.appendChild(loginsTriangle);
+	loginsTriangle.style.cursor = "pointer";
+	var loginsAreOpen = false;
+	loginsTriangle.addEventListener("click", function() {
+		loginsAreOpen = !loginsAreOpen;
+		loginsTriangle.innerHTML = (loginsAreOpen ? "▼ Manage Logins" : "► Manage Logins");
+		manageLoginsDiv.style.display = (loginsAreOpen ? "block" : "none");
+	});
+	
+	var manageLoginsDiv = document.createElement("div");
+	manageLoginsDiv.style.display = "none";
+	manageLoginsDiv.style.border = "solid white 1px";
+	manageLoginsDiv.style.padding = "5px";
+	manageLoginsDiv.style.fontSize = "75%";
+	leftSideDiv.appendChild(manageLoginsDiv);
+	
+	
+	var loginsDiv = document.createElement("div");
+	loginsDiv.style.fontSize = "100%";
+	manageLoginsDiv.appendChild(loginsDiv);
+	
+	//loginsDiv.innerHTML = "hello";
+	for (var i = 0; i < allLogins.length; i++)
+	{
+		var div = document.createElement("div");
+		div.innerHTML = allLogins[i].split("#")[0];
+		
+		div.style.width = "120px";
+		div.style.fontSize = "100%";
+		//div.style.border = "solid white 1px";
+		//div.style.background = "blue";
+		div.style.cursor = "move";
+		
+		div.style.WebkitUserSelect = "none"; //disable text selection in Safari+Chrome
+		div.style.MozUserSelect = "none"; //disable text selection in Firefox
+		div.style.MsUserSelect = "none"; //disable text selection in Internet Explorer
+		div.style.userSelect = "none"; //disable text selection in general?
+		
+		loginsDiv.appendChild(div);
+	}
+	
+	var selectedLogin;
+	loginsDiv.addEventListener("mousedown", function(event)
+	{
+		selectedLogin = event.target;
+		event.preventDefault();
+	});
+	document.addEventListener("mouseup", function(event)
+	{
+		selectedLogin = null;
+	});
+	document.addEventListener("mousemove", function(event)
+	{
+		if (selectedLogin)
+		{
+			var boundingRect = loginsDiv.getBoundingClientRect();
+			//mouseX = (event.clientX || event.pageX) - boundingRect.left;
+			mouseY = (event.clientY || event.pageY) - boundingRect.top;
+			//mouseY -= 5; //padding
+			
+			var rowHeight = selectedLogin.getBoundingClientRect().height;
+			
+			var newRow = Math.floor(mouseY / rowHeight);
+			if (newRow < 0) newRow = 0;
+			
+			loginsDiv.removeChild(selectedLogin);
+			loginsDiv.insertBefore(selectedLogin, loginsDiv.children[newRow]);
+			
+			var loginName = selectedLogin.innerHTML;
+			
+			var oldRow;
+			for (var i = 0; i < allLogins.length; i++)
+			{
+				if (allLogins[i].indexOf(loginName + "#") != -1)
+				{
+					oldRow = i;
+					break;
+				}
+			}
+			
+			var login = allLogins[oldRow];
+			allLogins.splice(oldRow, 1); //remove from list
+			allLogins.splice(newRow, 0, login)
+			localStorage.setItem("logins", allLogins.join(","));
+		}
+	});
+	
+	
+	manageLoginsDiv.appendChild(document.createElement("br"));
+	
 	//Create button to remove login from list.
 	var forgetButton = document.createElement("button");
-	leftSideDiv.appendChild(forgetButton);
+	manageLoginsDiv.appendChild(forgetButton);
 	forgetButton.innerHTML = "Forget vampire";
 	forgetButton.addEventListener("click", function(event)
 	{
@@ -787,6 +882,7 @@ if (isLoginView == false)
 				var pocketString = bankForm.childNodes[bankForm.childNodes.length - 1].data;
 				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
 				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
 				localStorage.setItem("coinsIn" + userName, coinsIn);
 				localStorage.setItem("coinsOn" + userName, coinsOn);
 			}
@@ -820,6 +916,8 @@ if (isLoginView == false)
 			{
 				var moneyString = child.data;
 				var coinsOn = moneyString.substring(moneyString.indexOf("Money: ") + 7, moneyString.indexOf(" coin"));
+				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
 				
 				localStorage.setItem("coinsOn" + userName, coinsOn);
 			}
@@ -923,6 +1021,7 @@ if (isLoginView == false)
 			var pocketString = shopBalance.data;
 			var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
 			if (coinsOn == "no") coinsOn = "0";
+			if (coinsOn == "one") coinsOn = "1";
 			localStorage.setItem("coinsOn" + userName, coinsOn);
 			
 			//Purchase button is form's third-last grandchild.
