@@ -90,6 +90,12 @@ var isSSView = (borderDiv && borderDiv.childNodes[0].nodeName == "#text" && bord
 var isLoginView = (document.querySelectorAll("form.head").length != 0);
 var isLogoutView = (window.location.href.indexOf("action=logout") != -1);
 var isWelcomeView = (window.location.href.indexOf("action=welcome") != -1);
+var isSetPasswordView = false; // set to true if form with action=="setpass" is found...
+for (var i = 0; i < forms.length; i++)
+{
+	if (forms[i].action.value == "setpass") isSetPasswordView = true;
+}
+
 
 var userString = secondSpacey.childNodes[0].data;
 var userName = userString.substring(userString.indexOf("You are the vampire ") + 20, userString.indexOf(" (if this is not you"));
@@ -198,7 +204,7 @@ title.nextElementSibling.style.display="none";
 //myvamp, city, chat, logout
 //howto, faq, donate, news, 
 
-if (isLoginView == false)
+if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true))
 {
 	//Remove unnecessary header info.
 	var header = document.getElementsByClassName("head")[0];
@@ -239,6 +245,13 @@ if (isLoginView == false)
 	for ( ; ; ) //infinite loooop!
 	{
 		var child = footer.lastChild;
+		
+		if (child.tagName == "FORM" && child.action.value == "setpass") 
+		{
+			isSetPasswordView = true;
+			break;
+		}
+		
 		footer.removeChild(child);
 		if (child.innerHTML == "Click here for more detail") break;		
 	}
@@ -514,31 +527,105 @@ if (isLoginView == false)
 	loginsDiv.style.fontSize = "100%";
 	manageLoginsDiv.appendChild(loginsDiv);
 	
-	//loginsDiv.innerHTML = "hello";
 	for (var i = 0; i < allLogins.length; i++)
 	{
 		var div = document.createElement("div");
-		div.innerHTML = allLogins[i].split("#")[0];
-		
-		div.style.width = "120px";
 		div.style.fontSize = "100%";
-		//div.style.border = "solid white 1px";
-		//div.style.background = "blue";
-		div.style.cursor = "move";
-		
-		div.style.WebkitUserSelect = "none"; //disable text selection in Safari+Chrome
-		div.style.MozUserSelect = "none"; //disable text selection in Firefox
-		div.style.MsUserSelect = "none"; //disable text selection in Internet Explorer
-		div.style.userSelect = "none"; //disable text selection in general?
-		
 		loginsDiv.appendChild(div);
+		
+		var draggableDiv = document.createElement("div");
+		div.appendChild(draggableDiv);
+		
+		var vampName = allLogins[i].split("#")[0];
+		
+		draggableDiv.innerHTML = vampName;
+		draggableDiv.style.display = "inline-block";
+		draggableDiv.style.width = "110px";
+		draggableDiv.style.fontSize = "100%";
+		//draggableDiv.style.border = "solid white 1px";
+		//draggableDiv.style.background = "blue";
+		draggableDiv.style.cursor = "move";
+		
+		draggableDiv.style.WebkitUserSelect = "none"; //disable text selection in Safari+Chrome
+		draggableDiv.style.MozUserSelect = "none"; //disable text selection in Firefox
+		draggableDiv.style.MsUserSelect = "none"; //disable text selection in Internet Explorer
+		draggableDiv.style.userSelect = "none"; //disable text selection in general?
+		
+		var upDiv = document.createElement("div");
+		div.appendChild(upDiv);
+		upDiv.innerHTML = "∧&nbsp;";
+		upDiv.style.display = "inline-block";
+		upDiv.style.fontSize = "100%";
+		upDiv.style.cursor = "pointer";
+		upDiv.addEventListener("click", function(event)
+		{
+			var loginRow = event.target.parentElement;
+			var loginName = loginRow.children[0].innerHTML;
+			
+			var oldRow;
+			for (var i = 0; i < allLogins.length; i++)
+			{
+				if (allLogins[i].indexOf(loginName + "#") != -1)
+				{
+					oldRow = i;
+					break;
+				}
+			}
+			
+			newRow = oldRow - 1;
+			if (newRow < 0) newRow = 0;
+			
+			loginsDiv.removeChild(loginRow);
+			loginsDiv.insertBefore(loginRow, loginsDiv.children[newRow]);
+			
+			var login = allLogins[oldRow];
+			allLogins.splice(oldRow, 1); //remove from list
+			allLogins.splice(newRow, 0, login)
+			localStorage.setItem("logins", allLogins.join(","));
+		});
+		
+		var downDiv = document.createElement("div");
+		div.appendChild(downDiv);
+		downDiv.innerHTML = "&nbsp;∨";
+		downDiv.style.display = "inline-block";
+		downDiv.style.cursor = "pointer";
+		downDiv.style.fontSize = "100%";
+		downDiv.addEventListener("click", function(event)
+		{
+			var loginRow = event.target.parentElement;
+			var loginName = loginRow.children[0].innerHTML;
+			
+			var oldRow;
+			for (var i = 0; i < allLogins.length; i++)
+			{
+				if (allLogins[i].indexOf(loginName + "#") != -1)
+				{
+					oldRow = i;
+					break;
+				}
+			}
+			
+			newRow = oldRow + 1;
+			if (newRow >= allLogins.length) newRow = allLogins - 1;
+			
+			loginsDiv.removeChild(loginRow);
+			loginsDiv.insertBefore(loginRow, loginsDiv.children[newRow]);
+			
+			var login = allLogins[oldRow];
+			allLogins.splice(oldRow, 1); //remove from list
+			allLogins.splice(newRow, 0, login)
+			localStorage.setItem("logins", allLogins.join(","));
+		});
 	}
 	
 	var selectedLogin;
 	loginsDiv.addEventListener("mousedown", function(event)
 	{
-		selectedLogin = event.target;
-		event.preventDefault();
+		if (event.target.style.cursor == "move")
+		{
+			selectedLogin = event.target.parentElement;
+			event.preventDefault();
+		}
 	});
 	document.addEventListener("mouseup", function(event)
 	{
@@ -561,7 +648,7 @@ if (isLoginView == false)
 			loginsDiv.removeChild(selectedLogin);
 			loginsDiv.insertBefore(selectedLogin, loginsDiv.children[newRow]);
 			
-			var loginName = selectedLogin.innerHTML;
+			var loginName = selectedLogin.children[0].innerHTML;
 			
 			var oldRow;
 			for (var i = 0; i < allLogins.length; i++)
@@ -882,6 +969,7 @@ if (isLoginView == false)
 	if (isMyVampView)
 	{
 		var foundQuest = false;
+		var foundPossessions = false;
 		
 		for (var i = 0; i < borderDiv.childNodes.length; i++)
 		{
@@ -916,6 +1004,8 @@ if (isLoginView == false)
 				}
 				
 				localStorage.setItem("inventory" + userName, inventory);
+				
+				foundPossessions = true;
 			}
 			if (child.nodeName == "#text" && child.data.indexOf("Powers: ") != -1)
 			{
@@ -936,6 +1026,11 @@ if (isLoginView == false)
 				
 				foundQuest = true;
 			}
+		}
+		
+		if (foundPossessions == false)
+		{
+			localStorage.setItem("inventory" + userName, "<br />None");
 		}
 		
 		if (foundQuest == false)
@@ -989,10 +1084,13 @@ if (isLoginView == false)
 			
 			var shopBalance = shopDiv.childNodes[shopDiv.childNodes.length-1];
 			var pocketString = shopBalance.data;
-			var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
-			if (coinsOn == "no") coinsOn = "0";
-			if (coinsOn == "one") coinsOn = "1";
-			localStorage.setItem("coinsOn" + userName, coinsOn);
+			if (pocketString)
+			{
+				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
+				localStorage.setItem("coinsOn" + userName, coinsOn);
+			}
 			
 			//Purchase button is form's third-last grandchild.
 			var button = shopDiv.children[shopDiv.children.length-2];
@@ -1049,13 +1147,34 @@ if (isLoginView == false)
 							if (foundItem == false)
 							{
 								console.log("adding new item");
-								inventoryArray.push(itemName + " (" + quantity + ")");
+								inventoryArray.push(itemName + " (" + itemQuantity + ")");
 							}
 							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
 						}
 					}
 				}
 			});
+		}
+	}
+	
+	//Handler for pub
+	for (var i = 0; i < forms.length; i++)
+	{
+		var form = forms[i];
+		
+		if (form.action.value == "pub")
+		{
+			console.log("found a pub");
+			
+			var pubBalance = form.childNodes[form.childNodes.length-1];
+			var pocketString = pubBalance.data;
+			if (pocketString)
+			{
+				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
+				localStorage.setItem("coinsOn" + userName, coinsOn);
+			}
 		}
 	}
 	
@@ -1101,9 +1220,27 @@ if (isLoginView == false)
 	}
 	
 	financialsBox.appendChild(financialsHR);
-	inventoryBox.innerHTML += "Inventory: " + localStorage.getItem("inventory" + userName);
+	
+	var inventory = localStorage.getItem("inventory" + userName)
+	if (inventory == null || inventory == "")
+	{
+		inventoryBox.innerHTML += "Inventory: View your My Vampire page";
+	}
+	else
+	{
+		inventoryBox.innerHTML += "Inventory: " + inventory;
+	}
+	
 	inventoryBox.appendChild(inventoryHR);
-	powersBox.innerHTML += "Powers: <br />" + localStorage.getItem("powers" + userName);
+	var powers = localStorage.getItem("powers" + userName);
+	if (powers == null || powers == "")
+	{
+		powersBox.innerHTML += "Powers: View your My Vampire page";
+	}
+	else
+	{
+		powersBox.innerHTML += "Powers: <br />" + powers;
+	}
 	if (localStorage.getItem("quest" + userName) != null)
 	{
 		powersBox.innerHTML += "<br />Quest: <br />" + localStorage.getItem("quest" + userName);
@@ -1246,54 +1383,66 @@ if (isLoginView == false)
 	currentX = parseInt(localStorage.getItem("currentX" + userName));
 	currentY = parseInt(localStorage.getItem("currentY" + userName));
 	
-	//Bank info
+	//Place info
 	//TO-DO: comment this section!
-	function findNearestBanks(coordX, coordY, howManyBanks)
+	function findNearestPlaces(coordX, coordY, howManyPlaces, placeType)
 	{
-		var bankDistances = [];
-		var nearestBankList = [];
-		for (var i = 0; i < howManyBanks; i++)
+		var placeArray;
+		if (placeType == "bank")
 		{
-			bankDistances[i] = 200; //actual width and height of grid
-			nearestBankList[i] = null;
+			placeArray = bankArray;
 		}
-		//Parse array of banks.
-		for (var i = 0; i < bankArray.length; i++)
+		else if (placeType == "pub")
 		{
-			var bankX = bankArray[i][1]; //x coordinate index 1
-			var bankY = bankArray[i][2]; //y coordinate index 2
+			placeArray = pubArray;
+		}
+		else if (placeType == "station")
+		{
+			placeArray = stationArray;
+		}
+		
+		var placeDistances = [];
+		var nearestPlaceList = [];
+		for (var i = 0; i < howManyPlaces; i++)
+		{
+			placeDistances[i] = 200; //actual width and height of grid
+			nearestPlaceList[i] = null;
+		}
+		//Parse array of places.
+		for (var i = 0; i < placeArray.length; i++)
+		{
+			var placeX = placeArray[i][1]; //x coordinate index 1
+			var placeY = placeArray[i][2]; //y coordinate index 2
 		
 			//Determine distances on x and y coordinates.
-			var distanceX = Math.abs(bankX - coordX);
-			var distanceY = Math.abs(bankY - coordY);
+			var distanceX = Math.abs(placeX - coordX);
+			var distanceY = Math.abs(placeY - coordY);
 		
-			//Determine number of moves to bank.
+			//Determine number of moves to place.
 			var distance = Math.max(distanceX, distanceY);
 		
-			//Comparison to closest-known bank, sorting algorithm.
-			for (var j = bankDistances.length - 1; j >= 0; j--)
+			//Comparison to closest-known place, sorting algorithm.
+			for (var j = placeDistances.length - 1; j >= 0; j--)
 			{
-				if (distance < bankDistances[j])
+				if (distance < placeDistances[j])
 				{
-					if (j > 0 && distance < bankDistances[j - 1])
+					if (j > 0 && distance < placeDistances[j - 1])
 					{
-						bankDistances[j] = bankDistances[j - 1];
-						nearestBankList[j] = nearestBankList[j - 1];
+						placeDistances[j] = placeDistances[j - 1];
+						nearestPlaceList[j] = nearestPlaceList[j - 1];
 					}
 					else
 					{
-						bankDistances[j] = distance;
-						nearestBankList[j] = bankArray[i];
+						placeDistances[j] = distance;
+						nearestPlaceList[j] = placeArray[i];
 						break;
 					}
 				}
 			}
 		}
 		
-		return nearestBankList;
+		return nearestPlaceList;
 	}
-	
-	var nearestBanks = findNearestBanks(currentX, currentY, 5);
 	
 	var rightBorderDiv = document.createElement("div");
 	rightSideDiv.appendChild(rightBorderDiv);
@@ -1314,36 +1463,43 @@ if (isLoginView == false)
 	
 	rightBorderDiv.appendChild(document.createElement("hr"));
 	
-	function displayBanks(banks, fromX, fromY)
+	function displayPlaces(places, fromX, fromY)
 	{
-		var bankString = "";
+		var placeString = "";
 		
-		for (var i = 0; i < banks.length; i++)
+		for (var i = 0; i < places.length; i++)
 		{
-			var bank = banks[i];
+			var place = places[i];
 			
-			var bankX = bank[1];
-			var bankY = bank[2];
+			var placeX = place[1];
+			var placeY = place[2];
 			
-			var streetX = bankX / 2;
-			var streetY = bankY / 2;
+			var streetX = placeX / 2;
+			var streetY = placeY / 2;
 			
 			//Determine distances on x and y coordinates.
-			var directionX = bankX - fromX;
-			var directionY = bankY - fromY;
+			var directionX = placeX - fromX;
+			var directionY = placeY - fromY;
 			
 			var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
 			
-			bankString += streetNames;
-			bankString += ", ";
-			bankString += assignDirection(directionX, directionY);
-			bankString += "<br />";
+			if (place[0] != "")
+			{
+				placeString += place[0];
+				placeString += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
+			}
+			placeString += streetNames;
+			placeString += ", ";
+			placeString += assignDirection(directionX, directionY);
+			placeString += "<br />";
 		}
 		
-		return bankString;
+		return placeString;
 	}
 	
-	bankInfo.innerHTML += displayBanks(nearestBanks, currentX, currentY);
+	var nearestBanks = findNearestPlaces(currentX, currentY, 5, "bank");
+	
+	bankInfo.innerHTML += displayPlaces(nearestBanks, currentX, currentY);
 	
 	var stationInfoTitle = document.createElement("div");
 	stationInfoTitle.innerHTML = "Nearest transit station:<br />";
@@ -1358,48 +1514,10 @@ if (isLoginView == false)
 	rightBorderDiv.appendChild(stationInfo);
 	
 	//Station info
-	var stationDistance = 200; //actual width and height of grid
-	var nearestStation;
-	//Parse array of stations.
-	for (var i = 0; i < stationArray.length; i++)
-	{
-		var stationX = stationArray[i][1];
-		var stationY = stationArray[i][2];
-		
-		//Determine distances on x and y coordinates.
-		var distanceX = Math.abs(stationX - currentX);
-		var distanceY = Math.abs(stationY - currentY);
-		
-		//Determine number of moves to station.
-		var distance = Math.max(distanceX, distanceY);
-		
-		if (distance < stationDistance)
-		{
-			stationDistance = distance;
-			nearestStation = stationArray[i];
-		}
-	}
 	
-	//Display station info.
-	var stationX = nearestStation[1];
-	var stationY = nearestStation[2];
+	var nearestStations = findNearestPlaces(currentX, currentY, 2, "station");
 	
-	var streetX = stationX / 2;
-	var streetY = stationY / 2;
-	
-	var directionX = stationX - currentX;
-	var directionY = stationY - currentY;
-	
-	var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
-	
-	stationInfo.innerHTML += nearestStation[0];
-	stationInfo.innerHTML += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
-	stationInfo.innerHTML += streetNames;
-	stationInfo.innerHTML += ", ";
-	stationInfo.innerHTML += assignDirection(directionX, directionY);
-	stationInfo.innerHTML += "<br />";
-	
-	
+	stationInfo.innerHTML += displayPlaces(nearestStations, currentX, currentY);
 	
 	
 	
@@ -1622,9 +1740,42 @@ if (isLoginView == false)
 			searchY = yEndExact;
 		}
 		
-		var banksNearStart = findNearestBanks(searchX, searchY, 2);
+		var banksNearStart = findNearestPlaces(searchX, searchY, 2, "bank");
 		
-		displayLandmarkDiv.innerHTML = displayBanks(banksNearStart, searchX, searchY);
+		displayLandmarkDiv.innerHTML = displayPlaces(banksNearStart, searchX, searchY);
+	});
+	
+	findLandmarkDiv.appendChild(document.createElement("br"));
+	
+	var findPubsButton = document.createElement("button");
+	findPubsButton.innerHTML = "Find local pub";
+	findLandmarkDiv.appendChild(findPubsButton);
+	findPubsButton.addEventListener("click", function(event)
+	{
+		var searchX;
+		var searchY;
+		if (radioStart.checked)
+		{
+			var xStartExact = xStart.value;
+			var yStartExact = yStart.value;
+			if (dirStart.value.indexOf("x") != -1) xStartExact++;
+			if (dirStart.value.indexOf("y") != -1) yStartExact++;
+			searchX = xStartExact;
+			searchY = yStartExact;
+		}
+		else if (radioEnd.checked)
+		{
+			var xEndExact = xEnd.value;
+			var yEndExact = yEnd.value;
+			if (dirEnd.value.indexOf("x") != -1) xEndExact++;
+			if (dirEnd.value.indexOf("y") != -1) yEndExact++;
+			searchX = xEndExact;
+			searchY = yEndExact;
+		}
+		
+		var pubsNearStart = findNearestPlaces(searchX, searchY, 2, "pub");
+		
+		displayLandmarkDiv.innerHTML = displayPlaces(pubsNearStart, searchX, searchY);
 	});
 	
 	var displayLandmarkDiv = document.createElement("div");
@@ -2440,6 +2591,30 @@ if (isLoginView == false)
 				{
 					return;
 				}
+				break;
+			case 97: //numpad 1: move down-left
+				doMove(6);
+				break;
+			case 98: //numpad 2: move down
+				doMove(7);
+				break;
+			case 99: //numpad 3: move down-right
+				doMove(8);
+				break;
+			case 100: //numpad 4: move left
+				doMove(3);
+				break;
+			case 102: //numpad 6: move right
+				doMove(5);
+				break;
+			case 103: //numpad 7: move up-left
+				doMove(0);
+				break;
+			case 104: //numpad 8: move up
+				doMove(1);
+				break;
+			case 105: //numpad 9: move up-right
+				doMove(2);
 				break;
 			case 32: //spacebar: 
 				window.location.href = "/blood.pl?target=extra-commands";
