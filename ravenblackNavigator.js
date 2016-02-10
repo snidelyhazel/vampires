@@ -21,6 +21,7 @@
 //	+ Vamp info
 //		- Display stats from My Vampire page without going off the grid
 //			= Select to show powers and quests, bank balance and pocket change, inventory
+//			= Updates info at shops--including pawn shops-- and pubs, and guilds to come.
 //	+ Landmarks
 //		- Lists five nearest banks and nearest station
 //			= Includes direction and number of moves
@@ -1070,7 +1071,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		}
 	}
 	
-	//Handler for pocket change after purchasing items.
+	//Handler for pocket change and inventory after purchasing items from shops.
 	//TO-DO: comment more!
 	for (var i = 0; i < forms.length; i++)
 	{
@@ -1078,8 +1079,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		
 		if (form.action.value == "shop" && form.t.value != "heal")
 		{
-			console.log("found a shop");
-			
 			var shopDiv = form.children[1];
 			
 			var shopBalance = shopDiv.childNodes[shopDiv.childNodes.length-1];
@@ -1092,9 +1091,9 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 				localStorage.setItem("coinsOn" + userName, coinsOn);
 			}
 			
-			//Purchase button is form's third-last grandchild.
+			//Purchase button is shopDiv's third-last child, and second-last child element.
 			var button = shopDiv.children[shopDiv.children.length-2];
-			console.log("found a button:" + button.value);
+			
 			//When button is clicked.
 			button.addEventListener("click", function(event)
 			{
@@ -1102,6 +1101,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
 				var form = event.target.parentElement.parentElement;
 				
+				//Iterate over radio buttons.
 				for (var j = 0; j < form.t.length; j++)
 				{
 					var radio = form.t[j];
@@ -1120,19 +1120,26 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
 						console.log(coinsOn);
 						
+						//If able to afford.
 						if ((itemPrice * itemQuantity) <= coinsOn)
 						{
+							//Subtract from pocket change.
 							coinsOn -= itemPrice * itemQuantity;
 							localStorage.setItem("coinsOn" + userName, coinsOn);
 							
 							var foundItem = false;
+							
+							//Iterate over items in inventory.
 							for (var k = 0; k < inventoryArray.length; k++)
 							{
 								var oldItemString = inventoryArray[k];
+								
+								//If item being purchased.
 								if (oldItemString.indexOf(itemName) != -1)
 								{
 									foundItem = true;
 									
+									//Add to quantity.
 									var oldQuantityString = oldItemString.substring(oldItemString.indexOf("(")+1, oldItemString.indexOf(")"));
 									var oldQuantity = parseInt(oldQuantityString);
 									itemQuantity += oldQuantity;
@@ -1146,9 +1153,115 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 							}
 							if (foundItem == false)
 							{
+								//Add new item to inventory.
 								console.log("adding new item");
 								inventoryArray.push(itemName + " (" + itemQuantity + ")");
 							}
+							
+							//Save inventory.
+							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+						}
+					}
+				}
+			});
+		}
+		else if (form.action.value == "pawn")
+		{
+			var pawnDiv = form.children[1];
+			
+			var pawnBalance = pawnDiv.childNodes[pawnDiv.childNodes.length-1];
+			var pocketString = pawnBalance.data;
+			if (pocketString)
+			{
+				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
+				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
+				localStorage.setItem("coinsOn" + userName, coinsOn);
+			}
+			
+			//Sell button is pawnDiv's third-last child, and second-last child element.
+			var button = pawnDiv.children[pawnDiv.children.length-2];
+			
+			//When button is clicked.
+			button.addEventListener("click", function(event)
+			{
+				console.log("I've got $20 in my pocket.");
+				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
+				var form = event.target.parentElement.parentElement;
+				
+				//Iterate over radio buttons.
+				for (var j = 0; j < form.t.length; j++)
+				{
+					var radio = form.t[j];
+					
+					//if (form.t.value == radio.value) 
+					if (radio.checked)
+					{
+						console.log("radio button selected: " + radio.value);
+						
+						//Get name and price.
+						var itemNameAndPrice = radio.previousSibling.data;
+						var leftParenIndex = itemNameAndPrice.indexOf("(");
+						var itemName = itemNameAndPrice.slice(0, leftParenIndex - 1);
+						var itemPrice = parseInt(itemNameAndPrice.slice(leftParenIndex + 1, -1));
+						var sellQuantity = parseInt(form.target.value);
+						var inventoryQuantity = parseInt(radio.nextSibling.data.slice(11, -1));
+						
+						console.log(itemName);
+						console.log(itemPrice);
+						console.log(sellQuantity);
+						console.log(inventoryQuantity);
+						
+						var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
+						var inventory = localStorage.getItem("inventory" + userName);
+						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
+						console.log(coinsOn);
+						
+						//If enough to sell.
+						if (sellQuantity <= inventoryQuantity)
+						{
+							coinsOn += itemPrice * sellQuantity;
+							localStorage.setItem("coinsOn" + userName, coinsOn);
+							
+							//Figure if selling all or some of item in inventory.
+							var itemsLeft = inventoryQuantity - sellQuantity;
+							
+							var foundItem = false;
+							
+							//Iterate over items in inventory.
+							for (var k = 0; k < inventoryArray.length; k++)
+							{
+								var oldItemString = inventoryArray[k];
+								//If item being sold.
+								if (oldItemString.indexOf(itemName) != -1)
+								{
+									foundItem = true;
+									
+									//If any are left.
+									if (itemsLeft > 0)
+									{
+										//Update quantity in inventory.
+										inventoryArray[k] = itemName + " (" + itemsLeft + ")";
+										console.log(inventoryArray[k]);
+									}
+									else
+									{
+										//Otherwise remove item from inventory.
+										inventoryArray.splice(k, 1);
+										console.log("removed " + itemName);
+									}
+								}
+							}
+							
+							//If item was not found in inventory but we have some left.
+							if (foundItem == false && itemsLeft > 0)
+							{
+								//Add to inventory.
+								console.log("adding new item");
+								inventoryArray.push(itemName + " (" + itemsLeft + ")");
+							}
+							
+							//Save inventory. 
 							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
 						}
 					}
