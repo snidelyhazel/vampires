@@ -43,3 +43,10 @@ body
 			margin-top: 4px;
 			margin-bottom: 4px;
 		}
+
+
+TD.cityblock,TD.intersect,TD.street,TD.city
+		{
+			min-width: 130px;
+			max-width: 155px;
+		}

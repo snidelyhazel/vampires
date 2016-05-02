@@ -1841,9 +1841,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	var distanceDiv = document.createElement("div");
 	distanceDiv.innerHTML = "<br />";
 	
-	var setStartCurrentButton = document.createElement("button");
-	setStartCurrentButton.innerHTML = "Set start to current location";
-	setStartCurrentButton.addEventListener("click", function(event)
+	
+	function setStartToCurrentLocation()
 	{
 		var xIsEven = ((currentX % 2) == 0);
 		var yIsEven = ((currentY % 2) == 0);
@@ -1857,10 +1856,55 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		dirStart.value = direction;
 		
 		computeMoveCalculator();
+	}
+	
+	
+	//Set fromCurrent localStorage.
+	function updateFromCurrentStorage(event)
+	{
+		localStorage.setItem("fromCurrent", event.target.checked ? 1 : 0);
+		if (fromCurrent.checked)
+		{
+			setStartToCurrentLocation();
+		}
+	}
+	var fromCurrentDiv = document.createElement("div");
+	fromCurrentDiv.innerHTML = '<label for = "currentPersist">Start from current location</label><input type = "checkbox" id = "currentPersist"  tabindex = "-1">';
+	fromCurrentDiv.title = "Recalculates distance to destination <br /> \
+	                      from current location.";
+	//Make reference to fromCurrent checkbox.
+	var fromCurrent = fromCurrentDiv.children[1];
+	//Get current fromCurrent value.
+	fromCurrent.checked = localStorage.getItem("fromCurrent") == 1 ? true : false;
+	//When state change, update localStorage.
+	fromCurrent.onchange = updateFromCurrentStorage;
+	fromCurrentDiv.addEventListener("mouseenter", onHoverOver);
+	fromCurrentDiv.addEventListener("mouseleave", onHoverOut);
+	
+	
+	var swapStartEndButton = document.createElement("button");
+	swapStartEndButton.innerHTML = "↕";
+	swapStartEndButton.addEventListener("click", function(event) {
+		
+		var xTemp = xStart.value;
+		var yTemp = yStart.value;
+		var dirTemp = dirStart.value;
+		
+		xStart.value = xEnd.value;
+		yStart.value = yEnd.value;
+		dirStart.value = dirEnd.value;
+		
+		xEnd.value = xTemp;
+		yEnd.value = yTemp;
+		dirEnd.value = dirTemp;
+		
+		computeMoveCalculator();
 	});
+	fromCurrentDiv.appendChild(makeElement("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"));
+	fromCurrentDiv.appendChild(swapStartEndButton);
 	
 	moveCalculatorDiv.appendChild(moveTitleDiv);
-	moveCalculatorDiv.appendChild(setStartCurrentButton);
+	moveCalculatorDiv.appendChild(fromCurrentDiv);
 	moveCalculatorDiv.appendChild(document.createElement("br"));
 	moveCalculatorDiv.appendChild(xStart);
 	moveCalculatorDiv.appendChild(yStart);
@@ -1977,6 +2021,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	setIfNotNull(xEnd, "xEnd");
 	setIfNotNull(yEnd, "yEnd");
 	setIfNotNull(dirEnd, "dirEnd");
+	
+	if (fromCurrent.checked)
+	{
+		setStartToCurrentLocation();
+	}
 	
 	var findLandmarkDiv = document.createElement("div");
 	rightSideDiv.appendChild(findLandmarkDiv);
@@ -2968,6 +3017,16 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 				break;
 			case 32: //spacebar: 
 				window.location.href = "/blood.pl?target=extra-commands";
+				break;
+			case 191: //slash: 
+				if (window.location.href.indexOf("viewvamp") != -1)
+				{
+					window.location.href = window.location.href;
+				}
+				else
+				{
+					window.location.href = "/blood.pl";
+				}
 				break;
 			//case xx: //xxxxxxx: refresh 
 				//document.location.reload(true);
