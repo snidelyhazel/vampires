@@ -1,19 +1,43 @@
+
 body	
 		{
+			/* Display nothing 'til page is fully loaded. */
 			display: none;
 		}
+
 .border-box
 		{
+			/* Create settings for a border box. */
 			border: solid white 1px;
 			padding: 5px;
+			
+			/* Set standard font size within boxes. */
+			font-size: .61rem;
 		}
+
+.border-box div
+		{
+			/* Inherit font size from parent element for all divs inside border boxes. */
+			font-size: inherit;
+		}
+
 .box-title
 		{
+			/* Set title font size relative to root element with a larger line height within border boxes. */
 			font-size: .73rem;
-			line-height: 150%;
+			line-height: 1.5;
 		}
+
+.box-subtitle
+		{
+			/* Set subtitle font size relative to root element with a larger line height within border boxes. */
+			font-size: .67rem;
+			line-height: 1.5;
+		}
+
 .divider-line
 		{
+			/* Replace hr functionality. */
 			width: 100%;
 			border-top: solid white 1px;
 			margin-top: 4px;

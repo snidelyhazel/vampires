@@ -385,8 +385,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		optionsDiv.style.display = (optionsAreOpen ? "block" : "none");
 	});
 	
-	var optionsDiv = document.createElement("div");
-	optionsDiv.style.fontSize = "75%";
+	var optionsDiv = makeElement("<div class='border-box'></div>");
 	optionsDiv.style.display = "none";
 	leftSideDiv.appendChild(optionsDiv);
 	
@@ -500,23 +499,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 						Hides say, shout, telepathy and give commands.<br /> \
 						Disables B and R keybinding.";
 	
-	warModeDiv.style.fontSize = "100%";
-	doubleGSDiv.style.fontSize = "100%";
-	loginBoxDiv.style.fontSize = "100%";
-	vampInfoDiv.style.fontSize = "100%";
-	locationsDiv.style.fontSize = "100%";
 	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
-	financialsDiv.style.fontSize = "100%";
 	inventoryDiv.title  = "Tracks current inventory. Loaded from My Vampire page.";
-	inventoryDiv.style.fontSize = "100%";
 	powersDiv.title     = "Tracks powers, and current quest info if applicable. Loaded from My Vampire page.";
-	powersDiv.style.fontSize = "100%";
 	banksDiv.title     = "Displays 5 nearest Omnibank branches.";
-	banksDiv.style.fontSize = "100%";
 	transitsDiv.title     = "Displays 2 nearest transit stations.";
-	transitsDiv.style.fontSize = "100%";
 	pubsDiv.title     = "Displays 3 nearest local pubs.";
-	pubsDiv.style.fontSize = "100%";
 	
 	//Make reference to warMode checkbox.
 	var warMode = warModeDiv.children[1];
@@ -617,18 +605,15 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	var manageLoginsDiv = document.createElement("div");
 	manageLoginsDiv.style.display = "none";
 	manageLoginsDiv.className = "border-box";
-	manageLoginsDiv.style.fontSize = "75%";
 	leftSideDiv.appendChild(manageLoginsDiv);
 	
 	
 	var loginsDiv = document.createElement("div");
-	loginsDiv.style.fontSize = "100%";
 	manageLoginsDiv.appendChild(loginsDiv);
 	
 	for (var i = 0; i < allLogins.length; i++)
 	{
 		var div = document.createElement("div");
-		div.style.fontSize = "100%";
 		loginsDiv.appendChild(div);
 		
 		var draggableDiv = document.createElement("div");
@@ -638,8 +623,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		
 		draggableDiv.innerHTML = vampName;
 		draggableDiv.style.display = "inline-block";
-		draggableDiv.style.width = "110px";
-		draggableDiv.style.fontSize = "100%";
+		draggableDiv.style.width = "100px";
 		//draggableDiv.style.border = "solid white 1px";
 		//draggableDiv.style.background = "blue";
 		draggableDiv.style.cursor = "move";
@@ -651,9 +635,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		
 		var upDiv = document.createElement("div");
 		div.appendChild(upDiv);
-		upDiv.innerHTML = "∧&nbsp;";
+		upDiv.innerHTML = "∧";
 		upDiv.style.display = "inline-block";
-		upDiv.style.fontSize = "100%";
 		upDiv.style.cursor = "pointer";
 		upDiv.addEventListener("click", function(event)
 		{
@@ -682,12 +665,13 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			localStorage.setItem("logins", allLogins.join(","));
 		});
 		
+		div.appendChild(makeElement("&nbsp;&nbsp;"));
+		
 		var downDiv = document.createElement("div");
 		div.appendChild(downDiv);
-		downDiv.innerHTML = "&nbsp;∨";
+		downDiv.innerHTML = "∨";
 		downDiv.style.display = "inline-block";
 		downDiv.style.cursor = "pointer";
-		downDiv.style.fontSize = "100%";
 		downDiv.addEventListener("click", function(event)
 		{
 			var loginRow = event.target.parentElement;
@@ -713,6 +697,33 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			allLogins.splice(oldRow, 1); //remove from list
 			allLogins.splice(newRow, 0, login)
 			localStorage.setItem("logins", allLogins.join(","));
+		});
+		
+		div.appendChild(makeElement("&nbsp;&nbsp;&nbsp;&nbsp;"));
+		
+		var deleteDiv = document.createElement("div");
+		div.appendChild(deleteDiv);
+		deleteDiv.innerHTML = "x";
+		deleteDiv.style.display = "inline-block";
+		deleteDiv.style.cursor = "pointer";
+		deleteDiv.addEventListener("click", function(event)
+		{
+			var loginRow = event.target.parentElement;
+			var loginName = loginRow.children[0].innerHTML;
+			
+			var oldRow;
+			for (var i = 0; i < allLogins.length; i++)
+			{
+				if (allLogins[i].indexOf(loginName + "#") != -1)
+				{
+					oldRow = i;
+					break;
+				}
+			}
+			
+			loginsDiv.removeChild(loginRow);
+			
+			forgetVampire(loginName);
 		});
 	}
 	
@@ -768,16 +779,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	manageLoginsDiv.appendChild(document.createElement("br"));
 	
-	//Create button to remove login from list.
-	var forgetButton = document.createElement("button");
-	manageLoginsDiv.appendChild(forgetButton);
-	forgetButton.innerHTML = "Forget vampire";
-	forgetButton.addEventListener("click", function(event)
+	function forgetVampire(vampName)
 	{
 		//Search for the current username amongst saved ones.
 		for (var i = 0; i < allLogins.length; i++)
 		{
-			if (allLogins[i].indexOf(userName + "#") != -1)
+			if (allLogins[i].indexOf(vampName + "#") != -1)
 			{
 				//Remove the login and update the list.
 				allLogins.splice(i, 1);
@@ -787,13 +794,22 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		}
 		
 		//Remove associated records.
-		localStorage.removeItem("coinsIn" + userName);
-		localStorage.removeItem("coinsOn" + userName);
-		localStorage.removeItem("currentX" + userName);
-		localStorage.removeItem("currentY" + userName);
-		localStorage.removeItem("hittracker" + userName);
-		localStorage.removeItem("inventory" + userName);
-		localStorage.removeItem("powers" + userName);
+		localStorage.removeItem("coinsIn" + vampName);
+		localStorage.removeItem("coinsOn" + vampName);
+		localStorage.removeItem("currentX" + vampName);
+		localStorage.removeItem("currentY" + vampName);
+		localStorage.removeItem("hittracker" + vampName);
+		localStorage.removeItem("inventory" + vampName);
+		localStorage.removeItem("powers" + vampName);
+	}
+	
+	//Create button to remove login from list.
+	var forgetButton = document.createElement("button");
+	manageLoginsDiv.appendChild(forgetButton);
+	forgetButton.innerHTML = "Forget vampire";
+	forgetButton.addEventListener("click", function(event)
+	{
+		forgetVampire(userName);
 	});
 	
 	//Separate elements.
@@ -953,7 +969,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	scrollingDiv.style.height = "130px";
 	//Control overflow by scrolling.
 	scrollingDiv.style.overflowY = "auto";
-	scrollingDiv.style.fontSize = "75%";
 	leftSideDiv.appendChild(document.createElement("br"));
 	
 	//Initialize hit-tracking.
@@ -1414,7 +1429,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	
 	var myVampTitle = document.createElement("div");
-	myVampTitle.innerHTML = "<span class='box-title'>Vampire vitals:</span>";
+	myVampTitle.innerHTML = "<span class = 'box-title'>Vampire vitals:</span>";
 	myVampDiv.appendChild(myVampTitle);
 	
 	//myVampDiv.appendChild(makeElement("<div class='divider-line'>"));
@@ -1428,20 +1443,19 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	financialsBox.style.display = displayFinancials.checked ? "block" : "none";
 	inventoryBox.style.display  = displayInventory.checked  ? "block" : "none";
 	powersBox.style.display     = displayPowers.checked     ? "block" : "none";
-	financialsBox.style.fontSize = "75%";
-	inventoryBox.style.fontSize = "75%";
-	powersBox.style.fontSize = "75%";
-	var financialsLine = makeElement("<div class='divider-line'>");
-	var inventoryLine = makeElement("<div class='divider-line'>");
+	var financialsLine = makeElement("<div class = 'divider-line'>");
+	var inventoryLine = makeElement("<div class = 'divider-line'>");
+	
+	financialsBox.innerHTML = "<span class = 'box-subtitle'>Financials:</span> <br />";
 	
 	var coinsOn = localStorage.getItem("coinsOn" + userName);
 	if (isNaN(parseInt(coinsOn)))
 	{
-		financialsBox.innerHTML = "Pocket change: View your My Vampire page<br />";
+		financialsBox.innerHTML += "Pocket change: View your My Vampire page<br />";
 	}
 	else
 	{
-		financialsBox.innerHTML = "Pocket change: " + coinsOn + "<br />";
+		financialsBox.innerHTML += "Pocket change: " + coinsOn + "<br />";
 	}
 	var coinsIn = localStorage.getItem("coinsIn" + userName);
 	if (isNaN(parseInt(coinsIn)))
@@ -1458,22 +1472,22 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	var inventory = localStorage.getItem("inventory" + userName)
 	if (inventory == null || inventory == "")
 	{
-		inventoryBox.innerHTML += "Inventory: View your My Vampire page";
+		inventoryBox.innerHTML += "<span class = 'box-subtitle'>Inventory:</span> View your My Vampire page";
 	}
 	else
 	{
-		inventoryBox.innerHTML += "Inventory: " + inventory;
+		inventoryBox.innerHTML += "<span class = 'box-subtitle'>Inventory:</span> " + inventory;
 	}
 	
 	inventoryBox.appendChild(inventoryLine);
 	var powers = localStorage.getItem("powers" + userName);
 	if (powers == null || powers == "")
 	{
-		powersBox.innerHTML += "Powers: View your My Vampire page";
+		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> View your My Vampire page";
 	}
 	else
 	{
-		powersBox.innerHTML += "Powers: <br />" + powers;
+		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> <br />" + powers;
 	}
 	if (localStorage.getItem("quest" + userName) != null)
 	{
@@ -1683,18 +1697,17 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	rightBorderDiv.className = "border-box";
 	
 	var bankContainer = document.createElement("div");
-	bankContainer.innerHTML = "<div class='box-title'>Nearest Omnibank branches:</div>";
+	bankContainer.innerHTML = "<span class='box-title'>Nearest Omnibank branches:</span>";
 	rightBorderDiv.appendChild(bankContainer);
 	
 	//Display closest bank info.
 	var bankInfo = document.createElement("div");
-	bankInfo.style.fontSize = "75%";
 	bankInfo.style.lineHeight = "150%";
 	bankContainer.appendChild(bankInfo);
 	
 	bankContainer.style.display = displayBanks.checked ? "block" : "none";
 	
-	rightBorderDiv.appendChild(makeElement("<div class='divider-line'>"));
+	rightBorderDiv.appendChild(makeElement("<div class = 'divider-line'>"));
 	
 	function displayPlaces(places, fromX, fromY)
 	{
@@ -1718,7 +1731,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			
 			if (place[0] != "")
 			{
-				placeString += place[0];
+				placeString += "<span class = 'box-subtitle'>" + place[0] + "</span>";
 				placeString += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
 			}
 			placeString += streetNames;
@@ -1735,12 +1748,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	bankInfo.innerHTML += displayPlaces(nearestBanks, currentX, currentY);
 	
 	var stationContainer = document.createElement("div");
-	stationContainer.innerHTML = "<div class='box-title'>Nearest transit stations:<br /></div>";
+	stationContainer.innerHTML = "<span class='box-title'>Nearest transit stations:<br /></span>";
 	rightBorderDiv.appendChild(stationContainer);
 	
 	//Display closest transit info
 	var stationInfo = document.createElement("div");
-	stationInfo.style.fontSize = "75%";
 	stationInfo.style.lineHeight = "150%";
 	stationContainer.appendChild(stationInfo);
 	
@@ -1756,12 +1768,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	rightBorderDiv.appendChild(makeElement("<div class='divider-line'>"));
 	
 	var pubContainer = document.createElement("div");
-	pubContainer.innerHTML = "<div class='box-title'>Nearest local pubs:<br /></div>";
+	pubContainer.innerHTML = "<span class='box-title'>Nearest local pubs:<br /></span>";
 	rightBorderDiv.appendChild(pubContainer);
 	
 	//Display closest transit info
 	var pubInfo = document.createElement("div");
-	pubInfo.style.fontSize = "75%";
 	pubInfo.style.lineHeight = "150%";
 	pubContainer.appendChild(pubInfo);
 	
@@ -1826,9 +1837,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	xEnd.style.width = "92px";
 	yEnd.style.width = "58px";
 	dirEnd.style.width = "43px";
-	var moveTitleDiv = makeElement("<div class='box-title'>Distance calculator:</div>");
+	var moveTitleDiv = makeElement("<span class='box-title'>Distance calculator:<br /></span>");
 	var distanceDiv = document.createElement("div");
-	distanceDiv.style.fontSize = "75%";
 	distanceDiv.innerHTML = "<br />";
 	
 	var setStartCurrentButton = document.createElement("button");
@@ -1972,7 +1982,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	rightSideDiv.appendChild(findLandmarkDiv);
 	findLandmarkDiv.innerHTML = "<span class='box-title'>Landmark finder:</span>";
 	findLandmarkDiv.className = "border-box";
-	findLandmarkDiv.style.fontSize = "100%";
 	
 	//Set findStartEnd localStorage.
 	function updateFindStartStorage(event)
@@ -1989,7 +1998,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 							      <input type = "radio" name = "findStartEnd" value = "end" id = "end" tabindex = "-1"/><label for = "end">end</label>';
 	var radioStart = findStartEndForm.children[0];
 	var radioEnd   = findStartEndForm.children[2];
-	findStartEndForm.style.fontSize = "75%";
 	radioStart.checked = localStorage.getItem("findStartEnd") == 1 ? false : true;
 	radioEnd.checked   = localStorage.getItem("findStartEnd") == 1 ? true : false;
 	radioStart.onchange = updateFindStartStorage;
@@ -2061,7 +2069,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var displayLandmarkDiv = document.createElement("div");
 	findLandmarkDiv.appendChild(displayLandmarkDiv);
-	displayLandmarkDiv.style.fontSize = "75%";
 	displayLandmarkDiv.innerHTML = "<br /><br />";
 	
 	
@@ -2175,26 +2182,24 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	tabPages.style.border = "1px solid";
 	tabPages.style.borderTopWidth = "0px";
 	tabPages.style.clear = "both";
+	tabPages.className = "border-box";
 	//tabPages.style.width = "250px";
 	
 	var shopCalcDiv = document.createElement("div");
 	tabPages.appendChild(shopCalcDiv);
 	shopCalcDiv.id = "shoppingCalc";
-	shopCalcDiv.style.padding = "5px";
-	shopCalcDiv.style.fontSize = "100%";
 	
 	function addAlignedMenu(label, element)
 	{
 		var td = document.createElement("td");
 		td.style.display = "block";
 		td.style.width = "190px";
-		td.style.fontSize = "75%";
+		td.style.fontSize = "inherit";
 		td.style.verticalAlign = "middle";
 		shopCalcDiv.appendChild(td);
 		
 		var tdSpan = document.createElement("span");
 		td.appendChild(tdSpan);
-		tdSpan.style.fontSize = "100%";
 		tdSpan.appendChild(document.createTextNode(label));
 		
 		td.appendChild(element);
@@ -2277,16 +2282,13 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	quantityBlock.style.clear = "both";
 	//addAlignedMenu("Quantity: ", quantityBlock);
 	//quantityBlock.style.display = "inline-block";
-	quantityBlock.style.fontSize = "100%";
 	
 	var charismaDiv = document.createElement("div");
-	charismaDiv.style.fontSize = "75%";
 	charismaDiv.style.display = "inline-block";
 	quantityBlock.appendChild(charismaDiv);
 	
 	var charismaLabel = document.createElement("div");
 	charismaLabel.style.display = "inline-block";
-	charismaLabel.style.fontSize = "100%";
 	charismaLabel.style.width = "55px";
 	charismaLabel.innerHTML = "Charisma: ";
 	charismaDiv.appendChild(charismaLabel);
@@ -2300,7 +2302,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var unitLabel = document.createElement("div");
 	unitLabel.style.display = "inline-block";
-	unitLabel.style.fontSize = "75%";
 	unitLabel.style.width = "33px";
 	unitLabel.style.textAlign = "right";
 	unitLabel.innerHTML = "Unit: ";
@@ -2311,16 +2312,13 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	unitPriceDiv.style.width = "55px";
 	unitPriceDiv.style.textAlign = "right";
 	unitPriceDiv.style.display = "inline-block";
-	unitPriceDiv.style.fontSize = "75%";
 	
 	
 	var itemPriceDiv = document.createElement("div");
 	shopCalcDiv.appendChild(itemPriceDiv);
-	itemPriceDiv.style.fontSize = "75%";
 	
 	var quantityLabel = document.createElement("div");
 	quantityLabel.style.display = "inline-block";
-	quantityLabel.style.fontSize = "100%";
 	quantityLabel.style.width = "56px";
 	quantityLabel.innerHTML = "Quantity: ";
 	itemPriceDiv.appendChild(quantityLabel);
@@ -2335,7 +2333,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var totalLabel = document.createElement("div");
 	totalLabel.style.display = "inline-block";
-	totalLabel.style.fontSize = "100%";
 	totalLabel.style.width = "37px";
 	totalLabel.style.textAlign = "right";
 	totalLabel.innerHTML = "Total: ";
@@ -2346,7 +2343,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	totalPriceDiv.style.width = "55px";
 	totalPriceDiv.style.textAlign = "right";
 	totalPriceDiv.style.display = "inline-block";
-	totalPriceDiv.style.fontSize = "100%";
 	
 	function calculateItemUnitPrice(itemName)
 	{
@@ -2497,15 +2493,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	var shopListTab = document.createElement("div");
 	tabPages.appendChild(shopListTab);
 	shopListTab.id = "shoppingList";
-	shopListTab.style.padding = "5px";
-	shopListTab.style.fontSize = "100%";
 	shopListTab.style.display = "none";
 	
 	var shopListDiv = document.createElement("div");
-	shopListDiv.style.fontSize = "75%";
 	
 	var shopButtonsDiv = document.createElement("div");
-	shopButtonsDiv.style.fontSize = "75%";
 	
 	function redisplayShoppingCalc()
 	{
@@ -2627,7 +2619,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			
 			var itemDiv = document.createElement("div");
 			shopButtonsDiv.appendChild(itemDiv);
-			itemDiv.style.fontSize = "100%";
 			
 			var itemSpan = document.createElement("span");
 			itemDiv.appendChild(itemSpan);
