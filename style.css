@@ -1,1 +1,21 @@
-body { display: none; }
+body	
+		{
+			display: none;
+		}
+.border-box
+		{
+			border: solid white 1px;
+			padding: 5px;
+		}
+.box-title
+		{
+			font-size: .73rem;
+			line-height: 150%;
+		}
+.divider-line
+		{
+			width: 100%;
+			border-top: solid white 1px;
+			margin-top: 4px;
+			margin-bottom: 4px;
+		}

@@ -137,6 +137,15 @@ function deleteCookie(name)
 	document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
+//Helper function for making HTML elements.	
+var makeElementDiv = document.createElement("div");
+function makeElement(elementAsString)
+{
+	makeElementDiv.innerHTML = elementAsString;
+	return makeElementDiv.firstChild;
+}
+
+//Helper function for reading data in local storage. 
 function readArrayFromLocalStorage(name, separator)
 {
 	var arrayAsString = localStorage.getItem(name);
@@ -317,7 +326,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	{
 		localStorage.setItem("displayInventory", event.target.checked ? 1 : 0);
 		inventoryBox.style.display  = displayInventory.checked  ? "block" : "none";
-		financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
+		financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
 	}
 	
 	//Set displayPowers localStorage.
@@ -325,8 +334,32 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	{
 		localStorage.setItem("displayPowers", event.target.checked ? 1 : 0);
 		powersBox.style.display     = displayPowers.checked     ? "block" : "none";
-		financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
-		inventoryHR.style.display = displayPowers.checked ? "block" : "none";
+		financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
+		inventoryLine.style.display = displayPowers.checked ? "block" : "none";
+	}
+	
+	//Set displayBanks localStorage.
+	function updateDisplayBanksStorage(event)
+	{
+		localStorage.setItem("displayBanks", event.target.checked ? 1 : 0);
+		bankContainer.style.display = displayBanks.checked ? "block" : "none";
+		updateLocationsHRs();
+	}
+	
+	//Set displayTransits localStorage.
+	function updateDisplayTransitsStorage(event)
+	{
+		localStorage.setItem("displayTransits", event.target.checked ? 1 : 0);
+		stationContainer.style.display = displayTransits.checked ? "block" : "none";
+		updateLocationsHRs();
+	}
+	
+	//Set displayPubs localStorage.
+	function updateDisplayPubsStorage(event)
+	{
+		localStorage.setItem("displayPubs", event.target.checked ? 1 : 0);
+		pubContainer.style.display = displayPubs.checked ? "block" : "none";
+		updateLocationsHRs();
 	}
 	
 	
@@ -342,9 +375,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	leftSideDiv.style.float = "left";
 	leftSideDiv.style.width = "150px";
 	
-	var optionsTriangle = document.createElement("div");
-	optionsTriangle.innerHTML = "► Options";
-	optionsTriangle.style.fontSize = "90%";
+	var optionsTriangle = makeElement("<div class='box-title'>► Options</div>");
 	leftSideDiv.appendChild(optionsTriangle);
 	optionsTriangle.style.cursor = "pointer";
 	var optionsAreOpen = false;
@@ -360,27 +391,38 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	leftSideDiv.appendChild(optionsDiv);
 	
 	//Create labels, checkboxes, radiobuttons.
-	var bindKeyDiv    = document.createElement("div");
-	var radioForm     = document.createElement("form"); 
-	var warModeDiv    = document.createElement("div");
-	var doubleGSDiv   = document.createElement("div");
-	var loginBoxDiv   = document.createElement("div");
-	var vampInfoDiv   = document.createElement("div");
-	var financialsDiv = document.createElement("div");
-	var inventoryDiv  = document.createElement("div");
-	var powersDiv     = document.createElement("div");
+	var bindKeyDiv      = document.createElement("div");
+	var radioForm       = document.createElement("form"); 
+	var warModeDiv      = document.createElement("div");
+	var doubleGSDiv     = document.createElement("div");
+	var loginBoxDiv     = document.createElement("div");
+	var vampInfoDiv     = document.createElement("div");
+	var financialsDiv   = document.createElement("div");
+	var inventoryDiv    = document.createElement("div");
+	var powersDiv       = document.createElement("div");
+	var locationsDiv    = document.createElement("div");
+	var banksDiv    = document.createElement("div");
+	var transitsDiv = document.createElement("div");
+	var pubsDiv     = document.createElement("div");
 	optionsDiv.appendChild(bindKeyDiv);
 	optionsDiv.appendChild(radioForm);
-	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
 	optionsDiv.appendChild(warModeDiv);
 	optionsDiv.appendChild(doubleGSDiv);
-	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
 	optionsDiv.appendChild(loginBoxDiv);
-	optionsDiv.appendChild(document.createElement("hr"));
+	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
 	optionsDiv.appendChild(vampInfoDiv);
 	optionsDiv.appendChild(financialsDiv);
 	optionsDiv.appendChild(inventoryDiv);
 	optionsDiv.appendChild(powersDiv);
+	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
+	optionsDiv.appendChild(locationsDiv);
+	optionsDiv.appendChild(banksDiv);
+	optionsDiv.appendChild(transitsDiv);
+	optionsDiv.appendChild(pubsDiv);
+	
+	
 	//tabindex = "-1" excludes tab from scrolling through these options for quick access to "More Commands".
 	bindKeyDiv.innerHTML  = '<label for  = "bindKey">Bind Keyboard</label><input type = "checkbox" id = "bindKey"  tabindex = "-1">';
 	radioForm.innerHTML   = '<div><input type = "radio" name = "keyConfig" value = "QWEDCXZA" id = "QWEDCXZA" checked tabindex = "-1"/> \
@@ -394,6 +436,10 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	financialsDiv.innerHTML = '<label for = "financials">Financials</label><input type = "checkbox" id = "financials" tabindex = "-1">';
 	inventoryDiv.innerHTML  = '<label for = "inventory">Inventory</label><input type = "checkbox" id = "inventory" tabindex = "-1">';
 	powersDiv.innerHTML     = '<label for = "powers">Powers</label><input type = "checkbox" id = "powers" tabindex = "-1">';
+	locationsDiv.innerHTML = '<label>Location List</label>';
+	banksDiv.innerHTML    = '<label for = "banks">Banks</label><input type = "checkbox" id = "banks" tabindex = "-1">';
+	transitsDiv.innerHTML = '<label for = "transits">Transits</label><input type = "checkbox" id = "transits" tabindex = "-1">';
+	pubsDiv.innerHTML     = '<label for = "pubs">Pubs</label><input type = "checkbox" id = "pubs" tabindex = "-1">';
 	
 	bindKeyDiv.title = "Action controls:<br /> \
 						B to Bite, R to Rob<br /> \
@@ -458,12 +504,19 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	doubleGSDiv.style.fontSize = "100%";
 	loginBoxDiv.style.fontSize = "100%";
 	vampInfoDiv.style.fontSize = "100%";
+	locationsDiv.style.fontSize = "100%";
 	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
 	financialsDiv.style.fontSize = "100%";
 	inventoryDiv.title  = "Tracks current inventory. Loaded from My Vampire page.";
 	inventoryDiv.style.fontSize = "100%";
 	powersDiv.title     = "Tracks powers, and current quest info if applicable. Loaded from My Vampire page.";
 	powersDiv.style.fontSize = "100%";
+	banksDiv.title     = "Displays 5 nearest Omnibank branches.";
+	banksDiv.style.fontSize = "100%";
+	transitsDiv.title     = "Displays 2 nearest transit stations.";
+	transitsDiv.style.fontSize = "100%";
+	pubsDiv.title     = "Displays 3 nearest local pubs.";
+	pubsDiv.style.fontSize = "100%";
 	
 	//Make reference to warMode checkbox.
 	var warMode = warModeDiv.children[1];
@@ -507,6 +560,27 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	//When state change, update localStorage.
 	displayPowers.onchange = updateDisplayPowersStorage;
 	
+	//Make reference to powers checkbox.
+	var displayBanks = banksDiv.children[1];
+	//Get current banks value.
+	displayBanks.checked = localStorage.getItem("displayBanks") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayBanks.onchange = updateDisplayBanksStorage;
+	
+	//Make reference to powers checkbox.
+	var displayTransits = transitsDiv.children[1];
+	//Get current transits value.
+	displayTransits.checked = localStorage.getItem("displayTransits") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayTransits.onchange = updateDisplayTransitsStorage;
+	
+	//Make reference to powers checkbox.
+	var displayPubs = pubsDiv.children[1];
+	//Get current pubs value.
+	displayPubs.checked = localStorage.getItem("displayPubs") == 1 ? true : false;
+	//When state change, update localStorage.
+	displayPubs.onchange = updateDisplayPubsStorage;
+	
 	//Separate elements.
 	for (var i = 0; i < 2; i++) leftSideDiv.appendChild(document.createElement("br"));
 	
@@ -529,9 +603,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		window.location.href = "/blood.pl";
 	});
 	
-	var loginsTriangle = document.createElement("div");
-	loginsTriangle.innerHTML = "► Manage Logins";
-	loginsTriangle.style.fontSize = "90%";
+	var loginsTriangle = makeElement("<div class='box-title'>► Manage Logins</div>");
 	loginsTriangle.style.margin = "5px 0px";
 	leftSideDiv.appendChild(loginsTriangle);
 	loginsTriangle.style.cursor = "pointer";
@@ -544,8 +616,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var manageLoginsDiv = document.createElement("div");
 	manageLoginsDiv.style.display = "none";
-	manageLoginsDiv.style.border = "solid white 1px";
-	manageLoginsDiv.style.padding = "5px";
+	manageLoginsDiv.className = "border-box";
 	manageLoginsDiv.style.fontSize = "75%";
 	leftSideDiv.appendChild(manageLoginsDiv);
 	
@@ -730,8 +801,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	//Create div container for vampInfo.
 	var myVampDiv = document.createElement("div");
-	myVampDiv.style.border = "solid white 1px";
-	myVampDiv.style.padding = "5px";
+	myVampDiv.className = "border-box";
 	leftSideDiv.appendChild(myVampDiv);
 	myVampDiv.style.maxWidth = "150px";
 	
@@ -796,6 +866,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	inventoryDiv.addEventListener("mouseleave", onHoverOut);
 	powersDiv.addEventListener("mouseenter", onHoverOver);
 	powersDiv.addEventListener("mouseleave", onHoverOut);
+	banksDiv.addEventListener("mouseenter", onHoverOver);
+	banksDiv.addEventListener("mouseleave", onHoverOut);
+	transitsDiv.addEventListener("mouseenter", onHoverOver);
+	transitsDiv.addEventListener("mouseleave", onHoverOut);
+	pubsDiv.addEventListener("mouseenter", onHoverOver);
+	pubsDiv.addEventListener("mouseleave", onHoverOut);
 	
 	//Replace all existing ? icons to call new hover functions.
 	var imgs = document.getElementsByTagName("img");
@@ -828,12 +904,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var hitTrackerBox = document.createElement("div");
 	leftSideDiv.appendChild(hitTrackerBox);
-	hitTrackerBox.style.border = "solid white 1px";
-	hitTrackerBox.style.padding = "5px";
+	hitTrackerBox.className = "border-box";
 	//hitTrackerBox.style.fontSize = "1%";
 	
 	var hitTrackerTitle = document.createElement("div");
-	hitTrackerTitle.innerHTML = "<span style='font-size: 90%;'>Hit tracker: </span><br />";
+	hitTrackerTitle.innerHTML = "<span class='box-title'>Hit tracker: </span><br />";
 	hitTrackerBox.appendChild(hitTrackerTitle);	
 	
 	//Select all hit-tracking button.
@@ -984,6 +1059,21 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	//Add space between sections.
 	leftSideDiv.appendChild(document.createElement("br"));
 	leftSideDiv.appendChild(document.createElement("br"));
+	
+	
+	
+	//Learning Powers.
+	for (var i = 0; i < forms.length; i++)
+	{
+		var form = forms[i];
+		if (form.action.value == "learn")
+		{
+			var powerName = form.target.value;
+			
+			console.log("found power: " + powerName);
+		}
+	}
+	
 	
 	
 	
@@ -1324,10 +1414,10 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	
 	var myVampTitle = document.createElement("div");
-	myVampTitle.innerHTML = "<span style='font-size: 90%;'>Vampire vitals:</span>";
+	myVampTitle.innerHTML = "<span class='box-title'>Vampire vitals:</span>";
 	myVampDiv.appendChild(myVampTitle);
 	
-	myVampDiv.appendChild(document.createElement("hr"));
+	//myVampDiv.appendChild(makeElement("<div class='divider-line'>"));
 	
 	var financialsBox = document.createElement("div");
 	var inventoryBox = document.createElement("div");
@@ -1341,8 +1431,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	financialsBox.style.fontSize = "75%";
 	inventoryBox.style.fontSize = "75%";
 	powersBox.style.fontSize = "75%";
-	var financialsHR = document.createElement("hr");
-	var inventoryHR = document.createElement("hr");
+	var financialsLine = makeElement("<div class='divider-line'>");
+	var inventoryLine = makeElement("<div class='divider-line'>");
 	
 	var coinsOn = localStorage.getItem("coinsOn" + userName);
 	if (isNaN(parseInt(coinsOn)))
@@ -1363,7 +1453,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		financialsBox.innerHTML += "Bank account: " + coinsIn;
 	}
 	
-	financialsBox.appendChild(financialsHR);
+	financialsBox.appendChild(financialsLine);
 	
 	var inventory = localStorage.getItem("inventory" + userName)
 	if (inventory == null || inventory == "")
@@ -1375,7 +1465,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		inventoryBox.innerHTML += "Inventory: " + inventory;
 	}
 	
-	inventoryBox.appendChild(inventoryHR);
+	inventoryBox.appendChild(inventoryLine);
 	var powers = localStorage.getItem("powers" + userName);
 	if (powers == null || powers == "")
 	{
@@ -1390,8 +1480,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		powersBox.innerHTML += "<br />Quest: <br />" + localStorage.getItem("quest" + userName);
 	}
 	
-	financialsHR.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
-	inventoryHR.style.display = displayPowers.checked ? "block" : "none";
+	financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
+	inventoryLine.style.display = displayPowers.checked ? "block" : "none";
 	
 	
 	
@@ -1590,22 +1680,21 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var rightBorderDiv = document.createElement("div");
 	rightSideDiv.appendChild(rightBorderDiv);
-	rightBorderDiv.style.border = "solid white 1px";
-	rightBorderDiv.style.padding = "5px";
+	rightBorderDiv.className = "border-box";
 	
-	var bankInfoTitle = document.createElement("div");
-	bankInfoTitle.innerHTML = "Nearest Omnibank branches:<br />";
-	bankInfoTitle.style.fontSize = "90%";
-	bankInfoTitle.style.lineHeight = "150%";
-	rightBorderDiv.appendChild(bankInfoTitle);
+	var bankContainer = document.createElement("div");
+	bankContainer.innerHTML = "<div class='box-title'>Nearest Omnibank branches:</div>";
+	rightBorderDiv.appendChild(bankContainer);
 	
 	//Display closest bank info.
 	var bankInfo = document.createElement("div");
 	bankInfo.style.fontSize = "75%";
 	bankInfo.style.lineHeight = "150%";
-	rightBorderDiv.appendChild(bankInfo);
+	bankContainer.appendChild(bankInfo);
 	
-	rightBorderDiv.appendChild(document.createElement("hr"));
+	bankContainer.style.display = displayBanks.checked ? "block" : "none";
+	
+	rightBorderDiv.appendChild(makeElement("<div class='divider-line'>"));
 	
 	function displayPlaces(places, fromX, fromY)
 	{
@@ -1645,17 +1734,17 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	bankInfo.innerHTML += displayPlaces(nearestBanks, currentX, currentY);
 	
-	var stationInfoTitle = document.createElement("div");
-	stationInfoTitle.innerHTML = "Nearest transit station:<br />";
-	stationInfoTitle.style.fontSize = "90%";
-	stationInfoTitle.style.lineHeight = "150%";
-	rightBorderDiv.appendChild(stationInfoTitle);
+	var stationContainer = document.createElement("div");
+	stationContainer.innerHTML = "<div class='box-title'>Nearest transit stations:<br /></div>";
+	rightBorderDiv.appendChild(stationContainer);
 	
 	//Display closest transit info
 	var stationInfo = document.createElement("div");
 	stationInfo.style.fontSize = "75%";
 	stationInfo.style.lineHeight = "150%";
-	rightBorderDiv.appendChild(stationInfo);
+	stationContainer.appendChild(stationInfo);
+	
+	stationContainer.style.display = displayTransits.checked ? "block" : "none";
 	
 	//Station info
 	
@@ -1664,12 +1753,63 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	stationInfo.innerHTML += displayPlaces(nearestStations, currentX, currentY);
 	
 	
+	rightBorderDiv.appendChild(makeElement("<div class='divider-line'>"));
+	
+	var pubContainer = document.createElement("div");
+	pubContainer.innerHTML = "<div class='box-title'>Nearest local pubs:<br /></div>";
+	rightBorderDiv.appendChild(pubContainer);
+	
+	//Display closest transit info
+	var pubInfo = document.createElement("div");
+	pubInfo.style.fontSize = "75%";
+	pubInfo.style.lineHeight = "150%";
+	pubContainer.appendChild(pubInfo);
+	
+	pubContainer.style.display = displayPubs.checked ? "block" : "none";
+	
+	//Pub info
+	
+	var nearestPubs = findNearestPlaces(currentX, currentY, 3, "pub");
+	
+	pubInfo.innerHTML += displayPlaces(nearestPubs, currentX, currentY);
+	
+	
+	function updateLocationsHRs()
+	{
+		var locationElements = rightBorderDiv.children;
+		for (var i = 0; i < locationElements.length; i++)
+		{
+			if (locationElements[i].className == "divider-line")
+			{
+				var followedByVisibleDiv = false;
+				for (var j = i + 1; j < locationElements.length; j++)
+				{
+					if (locationElements[j].className != "divider-line" && locationElements[j].style.display == "block") 
+					{
+						followedByVisibleDiv = true;
+					}
+				}
+				
+				if (locationElements[i-1].style.display == "block" && followedByVisibleDiv)
+				{
+					locationElements[i].style.display = "block";
+				}
+				else
+				{
+					locationElements[i].style.display = "none";
+				}
+			}
+		}
+	}
+	
+	updateLocationsHRs();
+	
+	
 	
 	//	+ Distance calculator
 	//TO-DO: comment this section!
 	var moveCalculatorDiv = document.createElement("div");
-	moveCalculatorDiv.style.border = "solid white 1px";
-	moveCalculatorDiv.style.padding = "5px";
+	moveCalculatorDiv.className = "border-box";
 	rightSideDiv.appendChild(document.createElement("br"));
 	rightSideDiv.appendChild(moveCalculatorDiv);
 	rightSideDiv.appendChild(document.createElement("br"));
@@ -1686,10 +1826,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	xEnd.style.width = "92px";
 	yEnd.style.width = "58px";
 	dirEnd.style.width = "43px";
-	var moveTitleDiv = document.createElement("div");
+	var moveTitleDiv = makeElement("<div class='box-title'>Distance calculator:</div>");
 	var distanceDiv = document.createElement("div");
-	moveTitleDiv.innerHTML = "Distance calculator:";
-	moveTitleDiv.style.fontSize = "90%";
 	distanceDiv.style.fontSize = "75%";
 	distanceDiv.innerHTML = "<br />";
 	
@@ -1832,9 +1970,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var findLandmarkDiv = document.createElement("div");
 	rightSideDiv.appendChild(findLandmarkDiv);
-	findLandmarkDiv.innerHTML = "<span style='font-size: 90%'>Landmark finder:</span>";
-	findLandmarkDiv.style.border = "solid white 1px";
-	findLandmarkDiv.style.padding = "5px";
+	findLandmarkDiv.innerHTML = "<span class='box-title'>Landmark finder:</span>";
+	findLandmarkDiv.className = "border-box";
 	findLandmarkDiv.style.fontSize = "100%";
 	
 	//Set findStartEnd localStorage.
@@ -2504,7 +2641,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 				itemSpan.style.color = "#666666";
 			}
 			
-			itemSpan.appendChild(document.createElement("hr"));
+			itemSpan.appendChild(makeElement("<div class='divider-line'>"));
 			itemSpan.appendChild(document.createTextNode(itemName));
 			itemSpan.appendChild(document.createElement("br"));
 			

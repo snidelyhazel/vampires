@@ -7,7 +7,7 @@
 		{
 			"matches": ["*://quiz.ravenblack.net/blood.pl*", "file:///*/Dropbox/Vampires/saved_screens/*"],
 			"css": ["style.css"],
-			"js": ["vampireData.js", "shopList.js", "ravenblackNavigator.js"],
+			"js": ["vampireData.js", "shopList.js", "powers.js", "ravenblackNavigator.js"],
 			"run_at": "document_end"
 		}
 	]
