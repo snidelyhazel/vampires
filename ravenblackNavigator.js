@@ -277,41 +277,20 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	
 	//	+ Customizable preferences
-	
-	//Set bindKey localStorage.
-	function updateBindKeyStorage(event)
+	function useStorage(checkbox, storageName, defaultValue, opposite)
 	{
-		localStorage.setItem("bindKey", event.target.checked ? 1 : 0);
-	}
-	
-	//Set radioQWE localStorage.
-	function updateRadioQWEStorage(event)
-	{
-		localStorage.setItem("keyConfig", event.target.checked ? 0 : 1)
-	}
-	
-	//Set radioWAS localStorage.
-	function updateRadioWASStorage(event)
-	{
-		localStorage.setItem("keyConfig", event.target.checked ? 1 : 0)
-	}
-	
-	//Set warMode localStorage.
-	function updateWarModeStorage(event)
-	{
-		localStorage.setItem("warMode", event.target.checked ? 1 : 0);
-	}
-	
-	//Set doubleGS localStorage.
-	function updateDoubleGSStorage(event)
-	{
-		localStorage.setItem("doubleGS", event.target.checked ? 1 : 0);
-	}
-	
-	//Set loginBox localStorage.
-	function updateLoginBoxStorage(event)
-	{
-		localStorage.setItem("loginBox", event.target.checked ? 1 : 0);
+		var checkedValue   = opposite ? "0" : "1";
+		var uncheckedValue = opposite ? "1" : "0";
+		checkbox.checked = defaultValue;
+		if (localStorage.getItem(storageName) != null)
+		{
+			checkbox.checked = (localStorage.getItem(storageName) == checkedValue ? true : false);
+		}
+		
+		checkbox.addEventListener("change", function(event)
+		{
+			localStorage.setItem(storageName, checkbox.checked ? checkedValue : uncheckedValue);
+		});
 	}
 	
 	//Set displayFinancials localStorage.
@@ -442,31 +421,32 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	bindKeyDiv.title = "Action controls:<br /> \
 						B to Bite, R to Rob<br /> \
+						P to pick up item<br /> \
 						H for Holy Water<br /> \
 						G for Garlic Spray<br /> \
 						Y for Wooden Stake<br /> \
-						U for UV Grenade (coming soon)<br /> \
+						U for UV Grenade<br /> \
 						T for SoTurn<br /> \
 						M for SoTel<br /> \
 						N for SoDisp<br /> \
-						Spacebar for More Commands";
+						Spacebar for More Commands<br /> \
+						/ to Refresh";
 	
 	//Make reference to bindKey checkbox.
 	var bindKey = bindKeyDiv.children[1];
-	//Get current bindKey value.
-	bindKey.checked = localStorage.getItem("bindKey") != 0 ? true : false;
-	//When state change, update localStorage.
-	bindKey.onchange = updateBindKeyStorage;
+	//Synchronize bindKey checkbox with localStorage.
+	useStorage(bindKey, "bindKey", true, false);
+	
+	
 	
 	//Make reference to movement configuration radiobuttons.
 	var radioQWEDiv = radioForm.children[0];
 	var radioWASDiv = radioForm.children[1];
 	var radioQWE = radioQWEDiv.children[0];
 	var radioWAS = radioWASDiv.children[0];
-	radioQWE.checked = localStorage.getItem("keyConfig") == 1 ? false : true;
-	radioWAS.checked = localStorage.getItem("keyConfig") == 1 ? true : false;
-	radioQWE.onchange = updateRadioQWEStorage;
-	radioWAS.onchange = updateRadioWASStorage;
+	//Synchronize radioQWE and radioWAS buttons with localStorage.
+	useStorage(radioQWE, "keyConfig", true, true);
+	useStorage(radioWAS, "keyConfig", false, false);
 	
 	bindKeyDiv.style.backgroundColor = "black";
 	bindKeyDiv.style.fontSize = "100%";
@@ -508,24 +488,18 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	//Make reference to warMode checkbox.
 	var warMode = warModeDiv.children[1];
-	//Get current warMode value.
-	warMode.checked = localStorage.getItem("warMode") == 1 ? true : false;
-	//When state change, update localStorage.
-	warMode.onchange = updateWarModeStorage;
+	//Synchronize warMode checkbox with localStorage.
+	useStorage(warMode, "warMode", false, false);
 	
 	//Make reference to doubleGS checkbox.
 	var doubleGS = doubleGSDiv.children[1];
-	//Get current doubleGS value.
-	doubleGS.checked = localStorage.getItem("doubleGS") == 1 ? true : false;
-	//When state change, update localStorage.
-	doubleGS.onchange = updateDoubleGSStorage;
+	//Synchronize doubleGS checkbox with localStorage.
+	useStorage(doubleGS, "doubleGS", false, false);
 	
 	//Make reference to loginBox checkbox.
 	var loginBox = loginBoxDiv.children[1];
-	//Get current loginBox value.
-	loginBox.checked = localStorage.getItem("loginBox") == 1 ? true : false;
-	//When state change, update localStorage.
-	loginBox.onchange = updateLoginBoxStorage;
+	//Synchronize loginBox checkbox with localStorage.
+	useStorage(loginBox, "loginBox", false, false);
 	
 	//Make reference to financials checkbox.
 	var displayFinancials = financialsDiv.children[1];
@@ -2167,14 +2141,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var currentTab = "shoppingCalc";
 	
-	function clickedTab(event)
+	function selectTab(currentTab)
 	{
-		var link = event.target;
-		currentTab = getHash(link.getAttribute('href'));
 		for (var i = 0; i < tabulation.children.length; i++)
 		{
 			var tab = tabulation.children[i];
-			if (tab.children[0] == link)
+			if (tab.firstChild.id == (currentTab + "Anchor"))
 			{
 				tab.style.borderBottomWidth = "0px";
 				tab.style.paddingBottom = "4px";
@@ -2200,17 +2172,23 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		{
 			redisplayShoppingCalc();
 		}
+		
+		localStorage.setItem("shopTab", currentTab);
 	}
 	
 	var shoppingCalc = document.createElement("li");
 	tabulation.appendChild(shoppingCalc);
 	var shoppingCalcAnchor = document.createElement("a");
 	shoppingCalc.appendChild(shoppingCalcAnchor);
-	shoppingCalcAnchor.href = "#shoppingCalc";
+	shoppingCalcAnchor.id = "shoppingCalcAnchor";
+	shoppingCalcAnchor.style.cursor = "pointer";
 	shoppingCalcAnchor.innerHTML = "Item calculator";
 	//shoppingCalcAnchor.style.fontSize = "150%";
 	shoppingCalcAnchor.style.textDecoration = "none";
-	shoppingCalcAnchor.addEventListener("click", clickedTab);
+	shoppingCalcAnchor.addEventListener("click", function(event)
+	{
+		selectTab("shoppingCalc");
+	});
 	applyTabStyles(shoppingCalc);
 	shoppingCalc.style.paddingBottom = "4px";
 	
@@ -2218,10 +2196,14 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	tabulation.appendChild(shoppingList);
 	var shoppingListAnchor = document.createElement("a");
 	shoppingList.appendChild(shoppingListAnchor);
-	shoppingListAnchor.href = "#shoppingList";
+	shoppingListAnchor.id = "shoppingListAnchor";
+	shoppingListAnchor.style.cursor = "pointer";
 	shoppingListAnchor.innerHTML = "Shopping list";
 	shoppingListAnchor.style.textDecoration = "none";
-	shoppingListAnchor.addEventListener("click", clickedTab);
+	shoppingListAnchor.addEventListener("click", function(event)
+	{
+		selectTab("shoppingList");
+	});
 	applyTabStyles(shoppingList);
 	shoppingList.style.float = "right";
 	shoppingList.style.marginRight = "0px";
@@ -2525,6 +2507,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			shoppingCart.push(itemSelect.value + "," + itemQuantityEntry.value);
 		}
 		
+		window.alert("Added " + itemQuantityEntry.value + " " + itemSelect.value + " to your shopping cart.");
+		
 		//Set locaLStorage for shoppingCart.
 		localStorage.setItem("shoppingCart" + userName, shoppingCart.join(";"));
 	});
@@ -2721,7 +2705,9 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		shopListDiv.innerHTML += shoppingContentsDisplay;
 	}
 	
-	
+	var savedTab = localStorage.getItem("shopTab");
+	if (savedTab == null) savedTab = "shoppingCalc";
+	selectTab(savedTab);
 	
 	
 	
@@ -2837,6 +2823,20 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			{
 				var form = forms[i];
 				if (form.action.value == action && form.target.value == target)
+				{
+					form.submit();
+					return;
+				}
+			}
+		}
+		
+		function pickUpItem()
+		{
+			var forms = document.getElementsByClassName("bq");
+			for (var i = 0; i < forms.length; i++)
+			{
+				var form = forms[i];
+				if (form.lastChild.value == "take")
 				{
 					form.submit();
 					return;
@@ -3000,15 +3000,18 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			case 72: //h: holy water
 				doCommand("use", "32");
 				break;
+			case 80: //p: pick up item
+				pickUpItem(0);
+				break;
 			case 84: //t: scroll of turning
 				doCommand("use", "0");
 				break;
 			case 89: //y: wooden stake
 				doCommand("use", "64");
 				break;
-			//case 85: //u: uv grenade
-				//doCommand("use", "x");
-				//break;
+			case 85: //u: uv grenade
+				doCommand("use", "66");
+				break;
 			case 77: //m: scroll of teleportation
 				doCommand("use", "1");
 				break;
