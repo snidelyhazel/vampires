@@ -10,6 +10,7 @@ body
 			/* Create settings for a border box. */
 			border: solid white 1px;
 			padding: 5px;
+			margin-bottom: 1rem;
 			
 			/* Set standard font size within boxes. */
 			font-size: .61rem;

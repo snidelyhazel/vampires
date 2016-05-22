@@ -1,48 +1,5 @@
-//Welcome to the Ravenblack Navigator.
+//Welcome to the Ravenblack Navigator!
 
-//Feature list:
-//	+ Multiple login support
-//	+ Clean interface
-//		- Consolidated banner, header and footer
-//		- Rearranged links
-//		- Options and features contained in sidebars
-//			= Left sidebar lists options
-//			= Right sidebar shows features
-//		- Hover over options for explanation
-//	+ Customizable preferences
-//		- Toggleable options saved automatically
-//	+ Keybinding
-//		- Spacebar to load "More Commands" in all modes
-//		- Grid movement controlled by keyboard
-//			= Two convenient movement configurations
-//		- Item use controlled by keyboard with minimal mouse requirement
-//		- One-touch biting and robbing
-//			= Humans preferenced above vampires
-//	+ Vamp info
-//		- Display stats from My Vampire page without going off the grid
-//			= Select to show powers and quests, bank balance and pocket change, inventory
-//			= Updates info at shops--including pawn shops-- and pubs, and guilds to come.
-//	+ Landmarks
-//		- Lists five nearest banks and nearest station
-//			= Includes direction and number of moves
-//	+ Distance calculator
-//		- Displays AP needed and relative direction between any two points on the grid
-//			= Includes ability to set starting point to current location
-//	+ Landmark finder
-//		- Find banks (pubs coming soon!) near given intersection
-//	+ Shopping calculator
-//		- Check item price from all moving and stationary shops as well as extended lairs
-//		- Shopping list creator
-//	+ War mode
-//		- Autoloading "More Commands"
-//		- Eliminates unnecessary speaking (say and shout), telepathy and giving commands
-//			= Declutters screen
-//		- Disables biting and robbing so no accidental attacks
-//	+ Hit-tracking
-//		- Tracking of hits by and against
-//			= Includes biting and robbing
-//
-//	+ Coming soon: Instant updating of pocket change and inventory!
 
 
 
@@ -341,6 +298,26 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		updateLocationsHRs();
 	}
 	
+	//Set displayDistCalc localStorage.
+	function updateDisplayDistCalcStorage(event)
+	{
+		localStorage.setItem("displayDistCalc", event.target.checked ? 1 : 0);
+		moveCalculatorDiv.style.display = displayDistCalc.checked ? "block" : "none";
+	}
+	
+	//Set displayLandmark localStorage.
+	function updateDisplayLandmarkStorage(event)
+	{
+		localStorage.setItem("displayLandmark", event.target.checked ? 1 : 0);
+		findLandmarkDiv.style.display = displayLandmark.checked ? "block" : "none";
+	}
+	
+	//Set displayShopList localStorage.
+	function updateDisplayShopListStorage(event)
+	{
+		localStorage.setItem("displayShopList", event.target.checked ? 1 : 0);
+		shoppingAreaDiv.style.display = displayShopList.checked ? "block" : "none";
+	}
 	
 	
 	
@@ -365,6 +342,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	});
 	
 	var optionsDiv = makeElement("<div class='border-box'></div>");
+	optionsDiv.style.marginBottom = "0";
 	optionsDiv.style.display = "none";
 	leftSideDiv.appendChild(optionsDiv);
 	
@@ -382,6 +360,9 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	var banksDiv    = document.createElement("div");
 	var transitsDiv = document.createElement("div");
 	var pubsDiv     = document.createElement("div");
+	var distCalcDiv = document.createElement("div");
+	var landmarkDiv = document.createElement("div");
+	var shopListDiv = document.createElement("div");
 	optionsDiv.appendChild(bindKeyDiv);
 	optionsDiv.appendChild(radioForm);
 	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
@@ -399,6 +380,9 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	optionsDiv.appendChild(banksDiv);
 	optionsDiv.appendChild(transitsDiv);
 	optionsDiv.appendChild(pubsDiv);
+	optionsDiv.appendChild(distCalcDiv);
+	optionsDiv.appendChild(landmarkDiv);
+	optionsDiv.appendChild(shopListDiv);
 	
 	
 	//tabindex = "-1" excludes tab from scrolling through these options for quick access to "More Commands".
@@ -418,6 +402,9 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	banksDiv.innerHTML    = '<label for = "banks">Banks</label><input type = "checkbox" id = "banks" tabindex = "-1">';
 	transitsDiv.innerHTML = '<label for = "transits">Transits</label><input type = "checkbox" id = "transits" tabindex = "-1">';
 	pubsDiv.innerHTML     = '<label for = "pubs">Pubs</label><input type = "checkbox" id = "pubs" tabindex = "-1">';
+	distCalcDiv.innerHTML = '<label for = "distCalc">Distance Calculator</label><input type = "checkbox" id = "distCalc" tabindex = "-1">';
+	landmarkDiv.innerHTML = '<label for = "landmark">Landmark Finder</label><input type = "checkbox" id = "landmark" tabindex = "-1">';
+	shopListDiv.innerHTML = '<label for = "shopList">Shopping List</label><input type = "checkbox" id = "shopList" tabindex = "-1">';
 	
 	bindKeyDiv.title = "Action controls:<br /> \
 						B to Bite, R to Rob<br /> \
@@ -482,9 +469,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
 	inventoryDiv.title  = "Tracks current inventory. Loaded from My Vampire page.";
 	powersDiv.title     = "Tracks powers, and current quest info if applicable. Loaded from My Vampire page.";
-	banksDiv.title     = "Displays 5 nearest Omnibank branches.";
-	transitsDiv.title     = "Displays 2 nearest transit stations.";
-	pubsDiv.title     = "Displays 3 nearest local pubs.";
+	banksDiv.title      = "Displays 5 nearest Omnibank branches.";
+	transitsDiv.title   = "Displays 2 nearest transit stations.";
+	pubsDiv.title       = "Displays 3 nearest local pubs.";
+	distCalcDiv.title   = "Calculates distance between two intersections.";
+	landmarkDiv.title   = "Finds landmarks near any intersection.";
+	shopListDiv.title   = "Calculates cost of item shopping list.";
 	
 	//Make reference to warMode checkbox.
 	var warMode = warModeDiv.children[1];
@@ -522,29 +512,50 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	//When state change, update localStorage.
 	displayPowers.onchange = updateDisplayPowersStorage;
 	
-	//Make reference to powers checkbox.
+	//Make reference to banks checkbox.
 	var displayBanks = banksDiv.children[1];
 	//Get current banks value.
 	displayBanks.checked = localStorage.getItem("displayBanks") != 0 ? true : false;
 	//When state change, update localStorage.
 	displayBanks.onchange = updateDisplayBanksStorage;
 	
-	//Make reference to powers checkbox.
+	//Make reference to transits checkbox.
 	var displayTransits = transitsDiv.children[1];
 	//Get current transits value.
 	displayTransits.checked = localStorage.getItem("displayTransits") != 0 ? true : false;
 	//When state change, update localStorage.
 	displayTransits.onchange = updateDisplayTransitsStorage;
 	
-	//Make reference to powers checkbox.
+	//Make reference to pubs checkbox.
 	var displayPubs = pubsDiv.children[1];
 	//Get current pubs value.
 	displayPubs.checked = localStorage.getItem("displayPubs") == 1 ? true : false;
 	//When state change, update localStorage.
 	displayPubs.onchange = updateDisplayPubsStorage;
 	
+	//Make reference to distCalc checkbox.
+	var displayDistCalc = distCalcDiv.children[1];
+	//Get current distCalc value.
+	displayDistCalc.checked = localStorage.getItem("displayDistCalc") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayDistCalc.onchange = updateDisplayDistCalcStorage;
+	
+	//Make reference to landmark checkbox.
+	var displayLandmark = landmarkDiv.children[1];
+	//Get current landmark value.
+	displayLandmark.checked = localStorage.getItem("displayLandmark") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayLandmark.onchange = updateDisplayLandmarkStorage;
+	
+	//Make reference to shopList checkbox.
+	var displayShopList = shopListDiv.children[1];
+	//Get current shopList value.
+	displayShopList.checked = localStorage.getItem("displayShopList") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayShopList.onchange = updateDisplayShopListStorage;
+	
 	//Separate elements.
-	for (var i = 0; i < 2; i++) leftSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
 	
 	//Create a menu to select a vampire.
 	var loginMenu = document.createElement("select");
@@ -780,6 +791,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	//Create button to remove login from list.
 	var forgetButton = document.createElement("button");
 	manageLoginsDiv.appendChild(forgetButton);
+	manageLoginsDiv.style.marginBottom = "0";
 	forgetButton.innerHTML = "Forget vampire";
 	forgetButton.addEventListener("click", function(event)
 	{
@@ -787,7 +799,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	});
 	
 	//Separate elements.
-	for (var i = 0; i < 2; i++) leftSideDiv.appendChild(document.createElement("br"));
+	leftSideDiv.appendChild(document.createElement("br"));
 	
 	//Create div container for vampInfo.
 	var myVampDiv = document.createElement("div");
@@ -862,6 +874,12 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	transitsDiv.addEventListener("mouseleave", onHoverOut);
 	pubsDiv.addEventListener("mouseenter", onHoverOver);
 	pubsDiv.addEventListener("mouseleave", onHoverOut);
+	distCalcDiv.addEventListener("mouseenter", onHoverOver);
+	distCalcDiv.addEventListener("mouseleave", onHoverOut);
+	landmarkDiv.addEventListener("mouseenter", onHoverOver);
+	landmarkDiv.addEventListener("mouseleave", onHoverOut);
+	shopListDiv.addEventListener("mouseenter", onHoverOver);
+	shopListDiv.addEventListener("mouseleave", onHoverOut);
 	
 	//Replace all existing ? icons to call new hover functions.
 	var imgs = document.getElementsByTagName("img");
@@ -888,8 +906,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	
 	//	+ Hit-tracker
-	leftSideDiv.appendChild(document.createElement("br"));
-	leftSideDiv.appendChild(document.createElement("br"));
 	
 	
 	var hitTrackerBox = document.createElement("div");
@@ -1045,10 +1061,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	scrollingDiv.innerHTML = localStorage.getItem("hittracker" + userName);
 	scrollingDiv.scrollTop = scrollingDiv.scrollHeight;
 	
-	//Add space between sections.
-	leftSideDiv.appendChild(document.createElement("br"));
-	leftSideDiv.appendChild(document.createElement("br"));
-	
 	
 	
 	//Learning Powers.
@@ -1144,11 +1156,6 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			localStorage.removeItem("quest" + userName);
 		}
 	}
-	
-	/*
-	TO DO:
-		handle paying money at a pub, a guild, or a shop; pub and shop shows money?
-	*/
 	
 	//Handler for pocket change after purchasing powers.
 	for (var i = 0; i < forms.length; i++)
@@ -1292,91 +1299,94 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 			//Sell button is pawnDiv's third-last child, and second-last child element.
 			var button = pawnDiv.children[pawnDiv.children.length-2];
 			
-			//When button is clicked.
-			button.addEventListener("click", function(event)
+			if (button != null)
 			{
-				console.log("I've got $20 in my pocket.");
-				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
-				var form = event.target.parentElement.parentElement;
-				
-				//Iterate over radio buttons.
-				for (var j = 0; j < form.t.length; j++)
+				//When button is clicked.
+				button.addEventListener("click", function(event)
 				{
-					var radio = form.t[j];
-					
-					//if (form.t.value == radio.value) 
-					if (radio.checked)
+					console.log("I've got $20 in my pocket.");
+					//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
+					var form = event.target.parentElement.parentElement;
+				
+					//Iterate over radio buttons.
+					for (var j = 0; j < form.t.length; j++)
 					{
-						console.log("radio button selected: " + radio.value);
-						
-						//Get name and price.
-						var itemNameAndPrice = radio.previousSibling.data;
-						var leftParenIndex = itemNameAndPrice.indexOf("(");
-						var itemName = itemNameAndPrice.slice(0, leftParenIndex - 1);
-						var itemPrice = parseInt(itemNameAndPrice.slice(leftParenIndex + 1, -1));
-						var sellQuantity = parseInt(form.target.value);
-						var inventoryQuantity = parseInt(radio.nextSibling.data.slice(11, -1));
-						
-						console.log(itemName);
-						console.log(itemPrice);
-						console.log(sellQuantity);
-						console.log(inventoryQuantity);
-						
-						var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
-						var inventory = localStorage.getItem("inventory" + userName);
-						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
-						console.log(coinsOn);
-						
-						//If enough to sell.
-						if (sellQuantity <= inventoryQuantity)
+						var radio = form.t[j];
+					
+						//if (form.t.value == radio.value) 
+						if (radio.checked)
 						{
-							coinsOn += itemPrice * sellQuantity;
-							localStorage.setItem("coinsOn" + userName, coinsOn);
-							
-							//Figure if selling all or some of item in inventory.
-							var itemsLeft = inventoryQuantity - sellQuantity;
-							
-							var foundItem = false;
-							
-							//Iterate over items in inventory.
-							for (var k = 0; k < inventoryArray.length; k++)
+							console.log("radio button selected: " + radio.value);
+						
+							//Get name and price.
+							var itemNameAndPrice = radio.previousSibling.data;
+							var leftParenIndex = itemNameAndPrice.indexOf("(");
+							var itemName = itemNameAndPrice.slice(0, leftParenIndex - 1);
+							var itemPrice = parseInt(itemNameAndPrice.slice(leftParenIndex + 1, -1));
+							var sellQuantity = parseInt(form.target.value);
+							var inventoryQuantity = parseInt(radio.nextSibling.data.slice(11, -1));
+						
+							console.log(itemName);
+							console.log(itemPrice);
+							console.log(sellQuantity);
+							console.log(inventoryQuantity);
+						
+							var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
+							var inventory = localStorage.getItem("inventory" + userName);
+							var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
+							console.log(coinsOn);
+						
+							//If enough to sell.
+							if (sellQuantity <= inventoryQuantity)
 							{
-								var oldItemString = inventoryArray[k];
-								//If item being sold.
-								if (oldItemString.indexOf(itemName) != -1)
+								coinsOn += itemPrice * sellQuantity;
+								localStorage.setItem("coinsOn" + userName, coinsOn);
+							
+								//Figure if selling all or some of item in inventory.
+								var itemsLeft = inventoryQuantity - sellQuantity;
+							
+								var foundItem = false;
+							
+								//Iterate over items in inventory.
+								for (var k = 0; k < inventoryArray.length; k++)
 								{
-									foundItem = true;
+									var oldItemString = inventoryArray[k];
+									//If item being sold.
+									if (oldItemString.indexOf(itemName) != -1)
+									{
+										foundItem = true;
 									
-									//If any are left.
-									if (itemsLeft > 0)
-									{
-										//Update quantity in inventory.
-										inventoryArray[k] = itemName + " (" + itemsLeft + ")";
-										console.log(inventoryArray[k]);
-									}
-									else
-									{
-										//Otherwise remove item from inventory.
-										inventoryArray.splice(k, 1);
-										console.log("removed " + itemName);
+										//If any are left.
+										if (itemsLeft > 0)
+										{
+											//Update quantity in inventory.
+											inventoryArray[k] = itemName + " (" + itemsLeft + ")";
+											console.log(inventoryArray[k]);
+										}
+										else
+										{
+											//Otherwise remove item from inventory.
+											inventoryArray.splice(k, 1);
+											console.log("removed " + itemName);
+										}
 									}
 								}
-							}
 							
-							//If item was not found in inventory but we have some left.
-							if (foundItem == false && itemsLeft > 0)
-							{
-								//Add to inventory.
-								console.log("adding new item");
-								inventoryArray.push(itemName + " (" + itemsLeft + ")");
-							}
+								//If item was not found in inventory but we have some left.
+								if (foundItem == false && itemsLeft > 0)
+								{
+									//Add to inventory.
+									console.log("adding new item");
+									inventoryArray.push(itemName + " (" + itemsLeft + ")");
+								}
 							
-							//Save inventory. 
-							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+								//Save inventory. 
+								localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 		}
 	}
 	
@@ -1666,13 +1676,13 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		return nearestPlaceList;
 	}
 	
-	var rightBorderDiv = document.createElement("div");
-	rightSideDiv.appendChild(rightBorderDiv);
-	rightBorderDiv.className = "border-box";
+	var nearestDiv = document.createElement("div");
+	rightSideDiv.appendChild(nearestDiv);
+	nearestDiv.className = "border-box";
 	
 	var bankContainer = document.createElement("div");
 	bankContainer.innerHTML = "<span class='box-title'>Nearest Omnibank branches:</span>";
-	rightBorderDiv.appendChild(bankContainer);
+	nearestDiv.appendChild(bankContainer);
 	
 	//Display closest bank info.
 	var bankInfo = document.createElement("div");
@@ -1681,7 +1691,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	bankContainer.style.display = displayBanks.checked ? "block" : "none";
 	
-	rightBorderDiv.appendChild(makeElement("<div class = 'divider-line'>"));
+	nearestDiv.appendChild(makeElement("<div class = 'divider-line'>"));
 	
 	function displayPlaces(places, fromX, fromY)
 	{
@@ -1723,7 +1733,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	var stationContainer = document.createElement("div");
 	stationContainer.innerHTML = "<span class='box-title'>Nearest transit stations:<br /></span>";
-	rightBorderDiv.appendChild(stationContainer);
+	nearestDiv.appendChild(stationContainer);
 	
 	//Display closest transit info
 	var stationInfo = document.createElement("div");
@@ -1739,11 +1749,11 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	stationInfo.innerHTML += displayPlaces(nearestStations, currentX, currentY);
 	
 	
-	rightBorderDiv.appendChild(makeElement("<div class='divider-line'>"));
+	nearestDiv.appendChild(makeElement("<div class='divider-line'>"));
 	
 	var pubContainer = document.createElement("div");
 	pubContainer.innerHTML = "<span class='box-title'>Nearest local pubs:<br /></span>";
-	rightBorderDiv.appendChild(pubContainer);
+	nearestDiv.appendChild(pubContainer);
 	
 	//Display closest transit info
 	var pubInfo = document.createElement("div");
@@ -1761,7 +1771,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	
 	function updateLocationsHRs()
 	{
-		var locationElements = rightBorderDiv.children;
+		var locationElements = nearestDiv.children;
 		for (var i = 0; i < locationElements.length; i++)
 		{
 			if (locationElements[i].className == "divider-line")
@@ -1795,9 +1805,8 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	//TO-DO: comment this section!
 	var moveCalculatorDiv = document.createElement("div");
 	moveCalculatorDiv.className = "border-box";
-	rightSideDiv.appendChild(document.createElement("br"));
+	moveCalculatorDiv.style.display = displayDistCalc.checked ? "block" : "none";
 	rightSideDiv.appendChild(moveCalculatorDiv);
-	rightSideDiv.appendChild(document.createElement("br"));
 	
 	var xStart = document.createElement("select");
 	var yStart = document.createElement("select");
@@ -2002,6 +2011,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	}
 	
 	var findLandmarkDiv = document.createElement("div");
+	findLandmarkDiv.style.display = displayLandmark.checked ? "block" : "none";
 	rightSideDiv.appendChild(findLandmarkDiv);
 	findLandmarkDiv.innerHTML = "<span class='box-title'>Landmark finder:</span>";
 	findLandmarkDiv.className = "border-box";
@@ -2095,14 +2105,16 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	displayLandmarkDiv.innerHTML = "<br /><br />";
 	
 	
-	rightSideDiv.appendChild(document.createElement("br"));
-	
 	
 	
 	//	+ Shopping calculator
 	//TO-DO: comment section!
+	var shoppingAreaDiv = document.createElement("div");
+	shoppingAreaDiv.style.display = displayShopList.checked ? "block" : "none";
+	rightSideDiv.appendChild(shoppingAreaDiv);
+	
 	var tabulation = document.createElement("ul");
-	rightSideDiv.appendChild(tabulation);
+	shoppingAreaDiv.appendChild(tabulation);
 	tabulation.style.listStyle = "none";
 	tabulation.style.padding = "0";
 	tabulation.style.margin = "0";
@@ -2209,7 +2221,7 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 	shoppingList.style.marginRight = "0px";
 	
 	var tabPages = document.createElement("div");
-	rightSideDiv.appendChild(tabPages);
+	shoppingAreaDiv.appendChild(tabPages);
 	tabPages.style.border = "1px solid";
 	tabPages.style.borderTopWidth = "0px";
 	tabPages.style.clear = "both";
@@ -2870,19 +2882,18 @@ if (isLoginView == false && (isSetPasswordView == false || isMyVampView == true)
 		
 		function doVamp(action)
 		{
-			//a for anchor tag.
+			//Find anchor tag.
 			var links = document.getElementsByTagName("a");
 			for (var i = 0; i <links.length; i++)
 			{
 				var link = links[i];
-				if (link.innerHTML == action) //"drink" or "rob"
+				//For "drink" or "rob" actions.
+				if (link.innerHTML == action) 
 				{
-					//save vamp, find vamp name in href target
-					
+					//Find vampire name in href target.
 					var url = link.href;
 					url = url.substring(url.indexOf("target=") + 7);
 					var vampName = url.substring(0, url.indexOf("&"));
-					console.log("attacked " + vampName);
 					
 					//Compare to list of vampsAttacked.
 					var foundMatch = false;
