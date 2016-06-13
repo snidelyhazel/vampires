@@ -22,7 +22,7 @@ Feature list:
 		- Display stats from My Vampire page without going off the grid
 			= Select to show powers and quests, bank balance and pocket change, inventory
 			= Updates info at shops--including pawn shops--and pubs, and guilds to come.
-	+ Landmarks
+	+ Landmark finder
 		- Lists five nearest banks, two nearest stations and three nearest pubs
 			= Includes direction and number of moves
 	+ Distance calculator
