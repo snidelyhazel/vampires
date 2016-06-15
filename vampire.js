@@ -63,12 +63,90 @@ if (shouldSetUpNavigator)
 			if (child.nodeName == "#text" && child.data.indexOf("Quest: ") != -1)
 			{
 				var questString = child.data;
-				var quest = questString.substring(questString.indexOf("Quest: ") + 7);
+				var questFullDescription = questString.substring(questString.indexOf("Quest: ") + 7);
 				//Remove . after deadline.
-				quest = quest.substring(0, quest.lastIndexOf("."));
+				questFullDescription = questFullDescription.substring(0, questFullDescription.lastIndexOf("."));
 				//Remove deadline info.
-				quest = quest.substring(0, quest.lastIndexOf(".")+1);
-				localStorage.setItem("quest" + userName, quest);
+				var questDescription = questFullDescription.substring(0, questFullDescription.lastIndexOf(".")+1);
+
+				var deadlineString = questString.substring(questString.indexOf(".") + 2, questString.length - 1);
+				var deadlineDuration = parseDuration(deadlineString);
+
+				var quest;
+				for (var j = 0; j < quests.length; j++)
+				{
+					console.log(questDescription, quests[j].descriptionCue, questDescription.includes(quests[j].descriptionCue));
+					if (questDescription.includes(quests[j].descriptionCue))
+					{
+						quest = quests[j];
+						break;
+					}
+				}
+
+				//Determine quest level from current powers.
+				var questLevel = 0;
+
+				var powersString = localStorage.getItem("powers" + userName);
+				var powers = powersString.split("<br />");
+				for (var j = 0; j < powers.length; j++)
+				{
+					var power = powers[j];
+					if (power.includes(quest.name))
+					{
+						questLevel = parseInt(extractInBetween(power, "(", ")"));
+					}
+				}
+				console.log("questLevel is " + questLevel);
+
+				switch (quest.name)
+				{
+					case "Celerity":
+						var intersectionNameX = extractInBetween(questDescription, "from the pub at ", " and ");
+						var intersectionNameY = extractInBetween(questDescription, " and ", ".");
+						var intersectionX = 0;
+						var intersectionY = 0;
+
+						for (var j = 0; j < streetArray.length; j++)
+						{
+							if (streetArray[j][1] == intersectionNameX)
+							{
+								intersectionX = streetArray[j][0];
+							}
+							if (streetArray[j][2] == intersectionNameY)
+							{
+								intersectionY = streetArray[j][0];
+							}
+						}
+
+						var pubName = "";
+						for (var j = 0; j < pubArray.length; j++)
+						{
+							if (pubArray[j][1] == intersectionX && pubArray[j][2] == intersectionY)
+							{
+								pubName = pubArray[j][0];
+							}
+						}
+
+						questDescription = "collect " + quest.legs[questLevel] + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
+						break;
+					case "Charisma":
+						//questDescription = "persuade " + extractInBetween(questDescription, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(questDescription, "to visit ", " there and") + " and say \"" + extractInBetween(questDescription, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
+						break;
+					case "Locate":
+						//questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have 10 blood to spare.";
+						break;
+					case "Stamina":
+						//questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", " and say '") + " and say \"" + extractInBetween(questDescription, "and say '", "'. Be sure to") + "\", ensuring you have " + extractInBetween(questDescription, "cost you ", ". You have") + " blood.";
+						break;
+					case "Perception":
+						//questDescription = "find and kill a vampire hunter.";
+						break;
+					case "Suction":
+						//questDescription = "drink from 20 vampires whose blood is higher than yours.";
+						break;
+				}
+
+				recordQuest(quest.name, questDescription, Date.now() + deadlineDuration);
 				
 				foundQuest = true;
 			}
@@ -82,6 +160,8 @@ if (shouldSetUpNavigator)
 		if (foundQuest == false)
 		{
 			localStorage.removeItem("quest" + userName);
+			localStorage.removeItem("questDescription" + userName);
+			localStorage.removeItem("questDeadline" + userName);
 		}
 	}
 	
@@ -400,9 +480,30 @@ if (shouldSetUpNavigator)
 	{
 		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> <br />" + powers;
 	}
-	if (localStorage.getItem("quest" + userName) != null)
+	if (localStorage.getItem("questDeadline" + userName) != null)
 	{
-		powersBox.innerHTML += "<br />Quest: <br />" + localStorage.getItem("quest" + userName);
+		powersBox.innerHTML += "<br />Quest: <br />";
+		powersBox.innerHTML += localStorage.getItem("quest" + userName) + ": ";
+		powersBox.innerHTML += localStorage.getItem("questDescription" + userName) + "<br />";
+
+
+		var deadlineDate = new Date(parseInt(localStorage.getItem("questDeadline" + userName)));
+		
+		//Current hour, in 24-hour time.
+		var hours = deadlineDate.getHours();
+		//Current minutes, if <10 one digit.
+		var minutes = deadlineDate.getMinutes();
+		if (minutes < 10)
+		{
+			minutes = "0" + minutes;
+		}
+		
+		//Current month, where January is 1 (instead of 0, the default).
+		var month = deadlineDate.getMonth() + 1;
+		//Current day of the month.
+		var day = deadlineDate.getDate();
+
+		powersBox.innerHTML += "Deadline: " + month + "/" + day + " " + hours + ":" + minutes;
 	}
 	
 	financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";

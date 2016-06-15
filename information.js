@@ -9,6 +9,79 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("hittracker" + userName, ""); 
 	}
+
+	function recordQuest(questName, questDescription, questDeadline)
+	{
+		localStorage.setItem("quest" + userName, questName);
+		localStorage.setItem("questDescription" + userName, questDescription);
+		localStorage.setItem("questDeadline" + userName, questDeadline);
+	}
+	
+	function extractInBetween(fullText, beforeText, afterText)
+	{
+		return fullText.substring(fullText.indexOf(beforeText) + beforeText.length, fullText.indexOf(afterText));
+	}
+
+	function parseNumbers(numberString)
+	{
+		if (isNaN(numberString))
+		{
+			switch (numberString)
+			{
+				case "one": return 1;
+				case "two": return 2;
+				case "three": return 3;
+				case "four": return 4;
+				case "five": return 5;
+				case "six": return 6;
+				case "seven": return 7;
+				case "eight": return 8;
+				case "nine": return 9;
+				case "ten": return 10;
+			}
+		}
+		else
+		{
+			return parseInt(numberString);
+		}
+	}
+
+	function parseDuration(durationString)
+	{
+		var secondLength = 1000;
+		var minuteLength = secondLength * 60;
+		var hourLength = minuteLength * 60;
+		var dayLength = hourLength * 24;
+
+		//Get units of time within duration.
+		var durationParts = durationString.split(", ");
+		var duration = 0;
+		
+		for (var j = 0; j < durationParts.length; j++)
+		{
+			var part = durationParts[j];
+
+			//Get numeric values associated with units of time.
+			var tokens = part.split(" ");
+
+			//Convert units of time to milliseconds and sum.
+			if (part.includes("minute"))
+			{
+				duration += parseNumbers(tokens[0]) * minuteLength;
+			}
+			else if (part.includes("hour"))
+			{
+				duration += parseNumbers(tokens[0]) * hourLength;
+			}
+			else if (part.includes("day"))
+			{
+				duration += parseNumbers(tokens[0]) * dayLength;
+			}
+		}
+
+		return duration;
+	}
+
 	
 	//Store hit-tracking.
 	//TO-DO: comment more!
@@ -44,8 +117,30 @@ if (shouldSetUpNavigator)
 						// TODO: Start quest!
 						console.log("Started quest! ");
 
-						localStorage.setItem("quest" + userName, quest.name);
-						localStorage.setItem("deadline" + userName, Date.now() + quest.days);
+						var description = "";
+						switch (quest.name)
+						{
+							case "Celerity":
+								description = "collect " + extractInBetween(message, "a series of ", " objects from") + " items, travel--no transits--to " + extractInBetween(message, "<i>Run</i> to ", ", and buy a drink") + " and buy a drink.";
+								break;
+							case "Charisma":
+								description = "persuade " + extractInBetween(message, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(message, "to visit ", " there and") + " and say \"" + extractInBetween(message, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
+								break;
+							case "Locate":
+								description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have 10 blood to spare.";
+								break;
+							case "Stamina":
+								description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"" + extractInBetween(message, "and say '", "'. Be sure to") + "\", ensuring you have " + extractInBetween(message, "cost you ", ". You have") + " blood.";
+								break;
+							case "Perception":
+								description = "find and kill a vampire hunter.";
+								break;
+							case "Suction":
+								description = "drink from 20 vampires whose blood is higher than yours.";
+								break;
+						}
+
+						recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000);
 					}
 				}
 			}
@@ -55,7 +150,7 @@ if (shouldSetUpNavigator)
 		{
 			var robString = message.substring(0, message.indexOf(" coin"));
 			robString = robString.substring(robString.lastIndexOf(" ")+1);
-			var robAmount = (robString == "one") ? 1 : parseInt(robString);
+			var robAmount = (robString == "one") ? 1 : parseNumbers(robString);
 			var currentCoinsOn = localStorage.getItem("coinsOn" + userName);
 			currentCoinsOn = parseInt(currentCoinsOn);
 			var newCoinsOn;

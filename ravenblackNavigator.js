@@ -1,8 +1,6 @@
 //Welcome to the Ravenblack Navigator!
 
 
-
-
 document.body.style.display = "block";
 
 
@@ -12,7 +10,7 @@ document.body.style.display = "block";
 //Use page load time to guess if the page was freshly downloaded, or loaded from a cache.
 var pageLoadTime = window.performance.timing.responseStart - window.performance.timing.requestStart;
 //If the page was loaded in under ten milliseconds, assume it's cached.
-var isNewPage = pageLoadTime > 10;
+var isNewPage = pageLoadTime > 10 || (window.location.href.includes("file:///"));
 
 //Get list of 3x3 grid spaces.
 var spaces = document.querySelectorAll("td.street, td.city, td.intersect, td.cityblock");

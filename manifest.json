@@ -16,7 +16,7 @@
 							"logins.js",
 							"information.js",
 							"vampire.js",
-							"deadline.js",
+							/*"deadline.js",*/
 							"hittracker.js",
 							"location.js",
 							"distance.js",
