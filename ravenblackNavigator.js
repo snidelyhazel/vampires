@@ -117,6 +117,19 @@ function readArrayFromLocalStorage(name, separator)
 //Get logins from local storage and store in an array.
 var allLogins = readArrayFromLocalStorage("logins", ",");
 
+function getLoginIndex(username)
+{
+	//Search for the username amongst saved ones.
+	for (var i = 0; i < allLogins.length; i++)
+	{
+		if (allLogins[i].indexOf(username + "#") == 0)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 //If login is successful, save login.
 if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
 {

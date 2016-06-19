@@ -4,6 +4,16 @@
 
 if (shouldSetUpNavigator)
 {
+	function setLogin(usernameAndPassword)
+	{
+		//Set the username and password for the current session in a cookie.
+		setCookie("ip", usernameAndPassword);
+		//Reset stamp cookie so that number of moves are not restricted for vampires without Second-Sight.
+		deleteCookie("stamp");
+		//Refresh page.
+		window.location.href = "/blood.pl";
+	}
+
 	//Create a menu to select a vampire.
 	var loginMenu = document.createElement("select");
 	for (var i = 0; i < allLogins.length; i++)
@@ -18,9 +28,7 @@ if (shouldSetUpNavigator)
 	loginMenu.addEventListener("change", function()
 	{
 		//loginMenu.value corresponds to the currently selected option's .value, which should be "username#password"
-		setCookie("ip", loginMenu.value);
-		deleteCookie("stamp");
-		window.location.href = "/blood.pl";
+		setLogin(loginMenu.value);
 	});
 	
 	var loginsTriangle = makeElement("<div class='box-title'>► Manage Logins</div>");
@@ -214,15 +222,12 @@ if (shouldSetUpNavigator)
 	function forgetVampire(vampName)
 	{
 		//Search for the current username amongst saved ones.
-		for (var i = 0; i < allLogins.length; i++)
+		var loginIndex = getLoginIndex(vampName);
+		if (loginIndex != -1)
 		{
-			if (allLogins[i].indexOf(vampName + "#") == 0)
-			{
-				//Remove the login and update the list.
-				allLogins.splice(i, 1);
-				localStorage.setItem("logins", allLogins.join(","));
-				break;
-			}
+			//Remove the login and update the list.
+			allLogins.splice(loginIndex, 1);
+			localStorage.setItem("logins", allLogins.join(","));
 		}
 		
 		//Remove associated records.

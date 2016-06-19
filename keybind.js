@@ -146,6 +146,21 @@ if (shouldSetUpNavigator)
 			}
 		}
 		
+		function cycleLogins(direction)
+		{
+			var loginIndex = getLoginIndex(userName);
+			loginIndex += direction;
+			if (loginIndex < 0)
+			{
+				loginIndex = allLogins.length - 1;
+			}
+			else if (loginIndex >= allLogins.length)
+			{
+				loginIndex = 0;
+			}
+			setLogin(allLogins[loginIndex]);
+		}
+
 		switch(event.keyCode)
 		{
 			case 66: //b: bite
@@ -257,6 +272,12 @@ if (shouldSetUpNavigator)
 				break;
 			case 32: //spacebar: 
 				window.location.href = "/blood.pl?target=extra-commands";
+				break;
+			case 38: //up arrow: 
+				cycleLogins(-1);
+				break;
+			case 40: //down arrow: 
+				cycleLogins(1);
 				break;
 			case 191: //slash: 
 				if (window.location.href.indexOf("viewvamp") != -1)

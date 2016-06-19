@@ -10,11 +10,31 @@ if (shouldSetUpNavigator)
 		localStorage.setItem("hittracker" + userName, ""); 
 	}
 
-	function recordQuest(questName, questDescription, questDeadline)
+	function recordQuest(questName, questDescription, questDeadline, questLegsLeft)
 	{
 		localStorage.setItem("quest" + userName, questName);
 		localStorage.setItem("questDescription" + userName, questDescription);
 		localStorage.setItem("questDeadline" + userName, questDeadline);
+		localStorage.setItem("questLegsLeft" + userName, questLegsLeft);
+	}
+
+	function getQuestLevel(questName)
+	{
+		//Determine quest level from current powers.
+		var questLevel = 0;
+
+		var powersString = localStorage.getItem("powers" + userName);
+		var powers = powersString.split("<br />");
+		for (var j = 0; j < powers.length; j++)
+		{
+			var power = powers[j];
+			if (power.includes(questName))
+			{
+				questLevel = parseInt(extractInBetween(power, "(", ")"));
+			}
+		}
+		
+		return questLevel;
 	}
 	
 	function extractInBetween(fullText, beforeText, afterText)
@@ -103,46 +123,64 @@ if (shouldSetUpNavigator)
 			message = element.outerHTML;
 		}
 		
-		if (dealtIt)
+		for (var i = 0; i < quests.length; i++)
 		{
-			for (var i = 0; i < quests.length; i++)
+			var quest = quests[i];
+			var startCues = quest.startCue;
+			var questLevel = getQuestLevel(quest.name);
+			for (var j = 0; j < startCues.length; j++)
 			{
-				var quest = quests[i];
-				var startCues = quest.startCue;
-				for (var j = 0; j < startCues.length; j++)
+				var startCue = startCues[j];
+				if (message.includes(startCue))
 				{
-					var startCue = startCues[j];
-					if (message.includes(startCue))
+					var description = "";
+					var legsLeft = 1;
+					switch (quest.name)
 					{
-						// TODO: Start quest!
-						console.log("Started quest! ");
-
-						var description = "";
-						switch (quest.name)
-						{
-							case "Celerity":
-								description = "collect " + extractInBetween(message, "a series of ", " objects from") + " items, travel--no transits--to " + extractInBetween(message, "<i>Run</i> to ", ", and buy a drink") + " and buy a drink.";
-								break;
-							case "Charisma":
-								description = "persuade " + extractInBetween(message, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(message, "to visit ", " there and") + " and say \"" + extractInBetween(message, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
-								break;
-							case "Locate":
-								description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have 10 blood to spare.";
-								break;
-							case "Stamina":
-								description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"" + extractInBetween(message, "and say '", "'. Be sure to") + "\", ensuring you have " + extractInBetween(message, "cost you ", ". You have") + " blood.";
-								break;
-							case "Perception":
-								description = "find and kill a vampire hunter.";
-								break;
-							case "Suction":
-								description = "drink from 20 vampires whose blood is higher than yours.";
-								break;
-						}
-
-						recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000);
+						case "Celerity":
+							legsLeft = parseInt(extractInBetween(message, "a series of ", " objects from"));
+							description = "collect " + legsLeft + " items, travel--no transits--to " + extractInBetween(message, "<i>Run</i> to ", ", and buy a drink") + " and buy a drink.";
+							break;
+						case "Charisma":
+							description = "persuade " + extractInBetween(message, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(message, "to visit ", " there and") + " and say \"" + extractInBetween(message, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
+							break;
+						case "Locate":
+							description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have " + [10, 15, 25][questLevel] + " blood to spare.";
+							break;
+						case "Stamina":
+							description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"" + extractInBetween(message, "and say '", "'. Be sure to") + "\", ensuring you have " + extractInBetween(message, "cost you ", " blood. You have") + " blood.";
+							break;
+						case "Perception":
+							description = "find and kill a vampire hunter.";
+							break;
+						case "Suction":
+							legsLeft = 20;
+							description = "drink from 20 vampires whose blood is higher than yours.";
+							break;
 					}
+
+					recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
 				}
+			}
+
+			if (message.includes(quest.stepCue))
+			{
+				var description = localStorage.getItem("questDescription" + userName);
+				var legsLeft = parseInt(localStorage.getItem("questLegsLeft" + userName)) - 1;
+				switch (quest.name)
+				{
+					case "Celerity":
+						description = "collect " + legsLeft + " items, travel--no transits--to " + extractInBetween(message, "now must run to ", " to buy a drink from the ") + " and buy a drink.";
+						break;
+					case "Locate":
+						description = "go to the NW corner of " + extractInBetween(message, "the corner of ", ".") + " and say \"Check-Point\", ensuring you have " + [10, 15, 25][questLevel] + " blood to spare.";
+						break;
+					case "Suction":
+						description = "drink from " + legsLeft + " vampires whose blood is higher than yours.";
+						break;
+				}
+
+				recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
 			}
 		}
 		

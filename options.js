@@ -176,7 +176,8 @@ if (shouldSetUpNavigator)
 						M for SoTel<br /> \
 						N for SoDisp<br /> \
 						Spacebar for More Commands<br /> \
-						/ to Refresh";
+						/ to Refresh<br /> \
+						Up and Down arrow keys to cycle logins";
 	
 	//Make reference to bindKey checkbox.
 	var bindKey = bindKeyDiv.children[1];

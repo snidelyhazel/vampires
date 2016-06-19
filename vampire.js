@@ -75,7 +75,6 @@ if (shouldSetUpNavigator)
 				var quest;
 				for (var j = 0; j < quests.length; j++)
 				{
-					console.log(questDescription, quests[j].descriptionCue, questDescription.includes(quests[j].descriptionCue));
 					if (questDescription.includes(quests[j].descriptionCue))
 					{
 						quest = quests[j];
@@ -84,19 +83,11 @@ if (shouldSetUpNavigator)
 				}
 
 				//Determine quest level from current powers.
-				var questLevel = 0;
+				var questLevel = getQuestLevel(quest.name);
 
-				var powersString = localStorage.getItem("powers" + userName);
-				var powers = powersString.split("<br />");
-				for (var j = 0; j < powers.length; j++)
-				{
-					var power = powers[j];
-					if (power.includes(quest.name))
-					{
-						questLevel = parseInt(extractInBetween(power, "(", ")"));
-					}
-				}
-				console.log("questLevel is " + questLevel);
+				var legsLeft = localStorage.getItem("questLegsLeft" + userName);
+				var oldQuestName = localStorage.getItem("quest" + userName);
+				var oldQuestDescription = localStorage.getItem("questDescription" + userName);
 
 				switch (quest.name)
 				{
@@ -127,6 +118,15 @@ if (shouldSetUpNavigator)
 							}
 						}
 
+						if (oldQuestDescription == null || quest.name != oldQuestName)
+						{
+							legsLeft = quest.legs[questLevel];
+						}
+						else if (!oldQuestDescription.includes(pubName))
+						{
+							legsLeft--;
+						}
+
 						questDescription = "collect " + quest.legs[questLevel] + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
 						break;
 					case "Charisma":
@@ -136,17 +136,18 @@ if (shouldSetUpNavigator)
 						//questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have 10 blood to spare.";
 						break;
 					case "Stamina":
-						//questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", " and say '") + " and say \"" + extractInBetween(questDescription, "and say '", "'. Be sure to") + "\", ensuring you have " + extractInBetween(questDescription, "cost you ", ". You have") + " blood.";
+						questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", ".") + " and say \"" + extractInBetween(questDescription, "say '", "' at the corner of") + "\", ensuring you have " + [500, 1000, 1500][questLevel] + " blood.";
 						break;
 					case "Perception":
-						//questDescription = "find and kill a vampire hunter.";
+						questDescription = "find and kill a vampire hunter.";
 						break;
 					case "Suction":
-						//questDescription = "drink from 20 vampires whose blood is higher than yours.";
+						legsLeft = extractInBetween(questDescription, "drink from another ", " powerful vampires");
+						questDescription = "drink from " + legsLeft + " vampires whose blood is higher than yours.";
 						break;
 				}
 
-				recordQuest(quest.name, questDescription, Date.now() + deadlineDuration);
+				recordQuest(quest.name, questDescription, Date.now() + deadlineDuration, legsLeft);
 				
 				foundQuest = true;
 			}
@@ -162,6 +163,7 @@ if (shouldSetUpNavigator)
 			localStorage.removeItem("quest" + userName);
 			localStorage.removeItem("questDescription" + userName);
 			localStorage.removeItem("questDeadline" + userName);
+			localStorage.removeItem("questLegsLeft" + userName);
 		}
 	}
 	
@@ -208,7 +210,7 @@ if (shouldSetUpNavigator)
 			
 			var shopBalance = shopDiv.childNodes[shopDiv.childNodes.length-1];
 			var pocketString = shopBalance.data;
-			if (pocketString)
+			if (pocketString && pocketString.includes("coin"))
 			{
 				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
 				if (coinsOn == "no") coinsOn = "0";
@@ -222,7 +224,6 @@ if (shouldSetUpNavigator)
 			//When button is clicked.
 			button.addEventListener("click", function(event)
 			{
-				console.log("shop button was pressed!");
 				//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
 				var form = event.target.parentElement.parentElement;
 				
@@ -232,18 +233,13 @@ if (shouldSetUpNavigator)
 					var radio = form.t[j];
 					if (form.t.value == radio.value) 
 					{
-						console.log("radio button selected: " + radio.value);
 						var itemPrice = parseInt(radio.previousSibling.data.slice(2,-1));
 						var itemName = radio.previousSibling.previousSibling.previousSibling.data.slice(0,-1);
 						var itemQuantity = parseInt(form.target.value);
-						console.log(itemPrice);
-						console.log(itemName);
-						console.log(itemQuantity);
 						
 						var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
 						var inventory = localStorage.getItem("inventory" + userName);
 						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
-						console.log(coinsOn);
 						
 						//If able to afford.
 						if ((itemPrice * itemQuantity) <= coinsOn)
@@ -269,17 +265,20 @@ if (shouldSetUpNavigator)
 									var oldQuantity = parseInt(oldQuantityString);
 									itemQuantity += oldQuantity;
 									//var newQuantity = oldQuantity + itemQuantity;
-									console.log("found old item");
-									console.log(inventoryArray[k]);
-									console.log(oldQuantity);
 									inventoryArray[k] = itemName + " (" + itemQuantity + ")";
-									console.log(inventoryArray[k]);
 								}
 							}
 							if (foundItem == false)
 							{
+								for (var k = 0; k < inventoryArray.length; k++)
+								{
+									if (inventoryArray[k] == "None")
+									{
+										inventoryArray.splice(k, 1);
+										k--;
+									}
+								}
 								//Add new item to inventory.
-								console.log("adding new item");
 								inventoryArray.push(itemName + " (" + itemQuantity + ")");
 							}
 							
@@ -296,7 +295,7 @@ if (shouldSetUpNavigator)
 			
 			var pawnBalance = pawnDiv.childNodes[pawnDiv.childNodes.length-1];
 			var pocketString = pawnBalance.data;
-			if (pocketString)
+			if (pocketString && pocketString.includes("coin"))
 			{
 				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(" coin"));
 				if (coinsOn == "no") coinsOn = "0";
@@ -305,14 +304,13 @@ if (shouldSetUpNavigator)
 			}
 			
 			//Sell button is pawnDiv's third-last child, and second-last child element.
-			var button = pawnDiv.children[pawnDiv.children.length-2];
+			var button = pawnDiv.children[pawnDiv.children.length - 2];
 			
 			if (button != null)
 			{
 				//When button is clicked.
 				button.addEventListener("click", function(event)
 				{
-					console.log("I've got $20 in my pocket.");
 					//Get form again as parent of button clicked; function is called after previous var form is no longer valid.
 					var form = event.target.parentElement.parentElement;
 				
@@ -324,8 +322,6 @@ if (shouldSetUpNavigator)
 						//if (form.t.value == radio.value) 
 						if (radio.checked)
 						{
-							console.log("radio button selected: " + radio.value);
-						
 							//Get name and price.
 							var itemNameAndPrice = radio.previousSibling.data;
 							var leftParenIndex = itemNameAndPrice.indexOf("(");
@@ -334,15 +330,9 @@ if (shouldSetUpNavigator)
 							var sellQuantity = parseInt(form.target.value);
 							var inventoryQuantity = parseInt(radio.nextSibling.data.slice(11, -1));
 						
-							console.log(itemName);
-							console.log(itemPrice);
-							console.log(sellQuantity);
-							console.log(inventoryQuantity);
-						
 							var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
 							var inventory = localStorage.getItem("inventory" + userName);
 							var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
-							console.log(coinsOn);
 						
 							//If enough to sell.
 							if (sellQuantity <= inventoryQuantity)
@@ -369,13 +359,11 @@ if (shouldSetUpNavigator)
 										{
 											//Update quantity in inventory.
 											inventoryArray[k] = itemName + " (" + itemsLeft + ")";
-											console.log(inventoryArray[k]);
 										}
 										else
 										{
 											//Otherwise remove item from inventory.
 											inventoryArray.splice(k, 1);
-											console.log("removed " + itemName);
 										}
 									}
 								}
@@ -384,7 +372,6 @@ if (shouldSetUpNavigator)
 								if (foundItem == false && itemsLeft > 0)
 								{
 									//Add to inventory.
-									console.log("adding new item");
 									inventoryArray.push(itemName + " (" + itemsLeft + ")");
 								}
 							

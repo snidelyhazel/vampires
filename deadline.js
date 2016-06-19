@@ -17,7 +17,6 @@ if (shouldSetUpNavigator)
 		
 		var foundQuest = false;
 		
-		var deadline = "";
 		
 		for (var i = 0; i < borderDiv.childNodes.length; i++)
 		{			
@@ -31,7 +30,7 @@ if (shouldSetUpNavigator)
 				quest = quest.substring(0, quest.lastIndexOf("."));
 				//Remove deadline info.
 				quest = quest.substring(0, quest.lastIndexOf(".") + 1);
-				deadline += questString.substring(questString.indexOf(".") + 2, questString.length - 1);
+				var deadline = questString.substring(questString.indexOf(".") + 2, questString.length - 1);
 				console.log(deadline);
 				
 				

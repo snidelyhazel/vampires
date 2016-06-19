@@ -18,10 +18,13 @@ Feature list:
 		- Item use controlled by keyboard with minimal mouse requirement
 		- One-touch biting and robbing
 			= Biting humans preferenced above vampires, vampire hunters preferenced above other humans
+		- Cycle through logins with up and down arrow keys
 	+ Vamp info
 		- Display stats from My Vampire page without going off the grid
 			= Select to show powers and quests, bank balance and pocket change, inventory
-			= Updates info at shops--including pawn shops--and pubs, and guilds to come.
+				~ Realtime quest tracking
+				~ Realtime inventory tracking coming soon!
+			= Updates info at shops--including pawn shops--and pubs, and guilds to come
 	+ Landmark finder
 		- Lists five nearest banks, two nearest stations and three nearest pubs
 			= Includes direction and number of moves
@@ -44,4 +47,4 @@ Feature list:
 		- Tracking of hits by and against
 			= Includes biting and robbing
 
-	+ Coming soon: Instant updating of pocket change and inventory!
+	+ Coming soon: Improved quest and inventory tracking!
