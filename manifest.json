@@ -1,13 +1,28 @@
 {
 	"manifest_version": 2,
 	"name": "Ravenblack Navigator",
-	"version": "0.5",
+	"version": "0.7.1",
 	"description": "Streamlines Ravenblack interface for flexibility and accessibility. Citywide Beta release!",
-	"content_scripts": [
+	"content_scripts":	[
 		{
 			"matches": ["*://quiz.ravenblack.net/blood.pl*"],
-			"css": ["style.css"],
-			"js": ["vampireData.js", "shopList.js", "ravenblackNavigator.js"],
+			"css":		["style.css"],
+			"js": 		[
+							"vampireData.js",
+							"shopList.js",
+							"powers.js",
+							"ravenblackNavigator.js",
+							"options.js",
+							"logins.js",
+							"information.js",
+							"vampire.js",
+							"hittracker.js",
+							"location.js",
+							"distance.js",
+							"landmark.js",
+							"shop.js",
+							"keybind.js"
+						],
 			"run_at": "document_end"
 		}
 	]
