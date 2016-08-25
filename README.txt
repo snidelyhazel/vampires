@@ -25,7 +25,7 @@ Feature list:
 				~ Realtime quest tracking
 				~ Realtime inventory tracking coming soon!
 			= Updates info at shops--including pawn shops--and pubs, and guilds to come
-	+ Landmark finder
+	+ Location list
 		- Lists five nearest banks, two nearest stations and three nearest pubs
 			= Includes direction and number of moves
 	+ Distance calculator
@@ -34,6 +34,8 @@ Feature list:
 		- Includes ability to flip start and end intersections
 	+ Landmark finder
 		- Find banks and pubs near start or end intersection in distance calculator
+			= Persistent calculation option
+			= Easy intersection swap
 	+ Shopping calculator
 		- Check item price from all moving and stationary shops as well as extended lairs
 		- Shopping list creator

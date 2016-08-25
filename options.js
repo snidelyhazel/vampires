@@ -87,7 +87,7 @@ if (shouldSetUpNavigator)
 	function updateDisplayShopListStorage(event)
 	{
 		localStorage.setItem("displayShopList", event.target.checked ? 1 : 0);
-		shoppingAreaDiv.style.display = displayShopList.checked ? "block" : "none";
+		shoppingAreaTabs.div.style.display = displayShopList.checked ? "block" : "none";
 	}
 	
 	var optionsTriangle = makeElement("<div class='box-title'>► Options</div>");
