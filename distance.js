@@ -5,11 +5,15 @@
 if (shouldSetUpNavigator)
 {
 	//TO-DO: comment this section!
-	var moveCalculatorDiv = document.createElement("div");
-	moveCalculatorDiv.className = "border-box";
-	moveCalculatorDiv.style.display = displayDistCalc.checked ? "block" : "none";
-	rightSideDiv.appendChild(moveCalculatorDiv);
+	var searchDiv = document.createElement("div");
+	searchDiv.className = "border-box";
+	searchDiv.style.width = "193px";
+	rightSideDiv.appendChild(searchDiv);
 	
+	var moveCalculatorDiv = document.createElement("div");
+	searchDiv.appendChild(moveCalculatorDiv);
+	moveCalculatorDiv.style.display = displayDistCalc.checked ? "block" : "none";
+
 	var xStart = document.createElement("select");
 	var yStart = document.createElement("select");
 	var dirStart = document.createElement("select");
@@ -99,7 +103,6 @@ if (shouldSetUpNavigator)
 	moveCalculatorDiv.appendChild(yEnd);
 	moveCalculatorDiv.appendChild(dirEnd);
 	moveCalculatorDiv.appendChild(distanceDiv);
-	moveCalculatorDiv.appendChild(document.createElement("br"));
 	
 	var selectDirs = [xStart, yStart, dirStart, xEnd, yEnd, dirEnd];
 	for (var i = 0; i < selectDirs.length; i++)
@@ -154,23 +157,41 @@ if (shouldSetUpNavigator)
 		yEnd.appendChild(option);
 	}
 	
+	function getStartCoords()
+	{
+		//Determine corner of the intersection.
+		var x = xStart.value;
+		var y = yStart.value;
+		if (dirStart.value.indexOf("x") != -1) x++;
+		if (dirStart.value.indexOf("y") != -1) y++;
+
+		//Return an object with x and y coordinates.
+		return {x: x, y: y};
+	}
+
+	function getEndCoords()
+	{
+		//Determine corner of the intersection.
+		var x = xEnd.value;
+		var y = yEnd.value;
+		if (dirEnd.value.indexOf("x") != -1) x++;
+		if (dirEnd.value.indexOf("y") != -1) y++;
+
+		//Return an object with x and y coordinates.
+		return {x: x, y: y};
+	}
+
 	function computeMoveCalculator(event)
 	{
-		var xStartExact = xStart.value;
-		var yStartExact = yStart.value;
-		var xEndExact = xEnd.value;
-		var yEndExact = yEnd.value;
-		if (dirStart.value.indexOf("x") != -1) xStartExact++;
-		if (dirStart.value.indexOf("y") != -1) yStartExact++;
-		if (dirEnd.value.indexOf("x") != -1) xEndExact++;
-		if (dirEnd.value.indexOf("y") != -1) yEndExact++;
-		var xDiff = xEndExact - xStartExact;
-		var yDiff = yEndExact - yStartExact;
+		var startCoords = getStartCoords();
+		var endCoords = getEndCoords();
+		var xDiff = endCoords.x - startCoords.x;
+		var yDiff = endCoords.y - startCoords.y;
 		if (isNaN(xDiff) || isNaN(yDiff)) 
 		{
 			distanceDiv.innerHTML = "Finish selecting streets.";
 		}
-		else if (xStartExact < 0 || xStartExact >= 200 || yStartExact < 0 || yStartExact >= 200 || xEndExact < 0 || xEndExact >= 200 || yEndExact < 0 || yEndExact >= 200) 
+		else if (startCoords.x < 0 || startCoords.x >= 200 || startCoords.y < 0 || startCoords.y >= 200 || endCoords.x < 0 || endCoords.x >= 200 || endCoords.y < 0 || endCoords.y >= 200) 
 		{
 			distanceDiv.innerHTML = "Out of bounds.";
 		}

@@ -19,6 +19,7 @@ if (shouldSetUpNavigator)
 		//Create border box to hold shop tab contents.
 		var tabPages = makeElement("<div class='border-box' style='border: 1px solid; border-top-width: 0px; clear: both;'></div>");
 		tabAreaDiv.appendChild(tabPages);
+		tabPages.style.width = "193px";
 		
 		//Displays active tab, setting to localStorage.
 		function selectTab(selectedTab)

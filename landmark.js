@@ -4,13 +4,14 @@
 
 if (shouldSetUpNavigator)
 {
+	searchDiv.appendChild(makeElement("<div class = 'divider-line'>"));
+
 	var findLandmarkDiv = document.createElement("div");
 
 	//Hide landmark calculator if unchecked.
 	findLandmarkDiv.style.display = displayLandmark.checked ? "block" : "none";
-	rightSideDiv.appendChild(findLandmarkDiv);
+	searchDiv.appendChild(findLandmarkDiv);
 	findLandmarkDiv.innerHTML = "<span class='box-title'>Landmark finder:</span>";
-	findLandmarkDiv.className = "border-box";
 	
 	//Set localStorage for start and end intersections.
 	function updateFindStartStorage(event)
@@ -37,31 +38,14 @@ if (shouldSetUpNavigator)
 	//Finds exact location at intersection
 	function getSearchCoords()
 	{
-		var searchX;
-		var searchY;
 		if (radioStart.checked)
 		{
-			//Determine corner of the intersection.
-			var xStartExact = xStart.value;
-			var yStartExact = yStart.value;
-			if (dirStart.value.indexOf("x") != -1) xStartExact++;
-			if (dirStart.value.indexOf("y") != -1) yStartExact++;
-			searchX = xStartExact;
-			searchY = yStartExact;
+			return getStartCoords();
 		}
 		else if (radioEnd.checked)
 		{
-			//Determine corner of the intersection.
-			var xEndExact = xEnd.value;
-			var yEndExact = yEnd.value;
-			if (dirEnd.value.indexOf("x") != -1) xEndExact++;
-			if (dirEnd.value.indexOf("y") != -1) yEndExact++;
-			searchX = xEndExact;
-			searchY = yEndExact;
+			return getEndCoords();
 		}
-
-		//Return an object with x and y coordinates.
-		return {searchX: searchX, searchY: searchY};
 	}
 
 	//Create a button to find nearest banks.
@@ -72,9 +56,9 @@ if (shouldSetUpNavigator)
 	{
 		var searchCoords = getSearchCoords();
 
-		var banksNearStart = findNearestPlaces(searchCoords.searchX, searchCoords.searchY, 2, "bank");
+		var banksNearStart = findNearestPlaces(searchCoords.x, searchCoords.y, 2, "bank");
 		
-		displayLandmarkDiv.innerHTML = displayPlaces(banksNearStart, searchCoords.searchX, searchCoords.searchY);
+		displayLandmarkDiv.innerHTML = displayPOIs(banksNearStart, searchCoords.x, searchCoords.y);
 	});
 	
 	findLandmarkDiv.appendChild(document.createElement("br"));
@@ -87,9 +71,9 @@ if (shouldSetUpNavigator)
 	{
 		var searchCoords = getSearchCoords();
 		
-		var pubsNearStart = findNearestPlaces(searchCoords.searchX, searchCoords.searchY, 2, "pub");
+		var pubsNearStart = findNearestPlaces(searchCoords.x, searchCoords.y, 2, "pub");
 		
-		displayLandmarkDiv.innerHTML = displayPlaces(pubsNearStart, searchCoords.searchX, searchCoords.searchY);
+		displayLandmarkDiv.innerHTML = displayPOIs(pubsNearStart, searchCoords.x, searchCoords.y);
 	});
 	
 	var displayLandmarkDiv = document.createElement("div");

@@ -183,6 +183,7 @@ if (shouldSetUpNavigator)
 	var nearestDiv = document.createElement("div");
 	rightSideDiv.appendChild(nearestDiv);
 	nearestDiv.className = "border-box";
+	nearestDiv.style.width = "193px";
 	
 	var bankContainer = document.createElement("div");
 	bankContainer.innerHTML = "<span class='box-title'>Nearest Omnibank branches:</span>";
@@ -197,49 +198,49 @@ if (shouldSetUpNavigator)
 	
 	nearestDiv.appendChild(makeElement("<div class = 'divider-line'>"));
 	
-	function displayPlaces(places, fromX, fromY)
+	function displayPOIs(points, fromX, fromY)
 	{
-		var placeString = "";
+		var result = "";
 		
-		for (var i = 0; i < places.length; i++)
+		for (var i = 0; i < points.length; i++)
 		{
-			var place = places[i];
+			var point = points[i];
 			
-			var placeX = place[1];
-			var placeY = place[2];
+			var pointX = point[1];
+			var pointY = point[2];
 			
-			var streetX = placeX / 2;
-			var streetY = placeY / 2;
+			var streetX = Math.ceil(pointX / 2);
+			var streetY = Math.ceil(pointY / 2);
 			
 			//Determine distances on x and y coordinates.
-			var directionX = placeX - fromX;
-			var directionY = placeY - fromY;
+			var directionX = pointX - fromX;
+			var directionY = pointY - fromY;
 			
 			var streetNames = streetArray[streetX][1] + " and " + streetArray[streetY][2];
 			
-			if (place[0] != "")
+			if (point[0] != "")
 			{
-				placeString += "<span class = 'box-subtitle'>" + place[0] + "</span>";
-				placeString += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
+				result += "<span class = 'box-subtitle'>" + point[0] + "</span>";
+				result += "<br />&nbsp;&nbsp;&nbsp;&nbsp;";
 			}
-			placeString += streetNames;
-			placeString += ", ";
-			placeString += assignDirection(directionX, directionY);
-			placeString += "<br />";
+			result += streetNames;
+			result += ", ";
+			result += assignDirection(directionX, directionY);
+			result += "<br />";
 		}
 		
-		return placeString;
+		return result;
 	}
 	
 	var nearestBanks = findNearestPlaces(currentX, currentY, 5, "bank");
 	
-	bankInfo.innerHTML += displayPlaces(nearestBanks, currentX, currentY);
+	bankInfo.innerHTML += displayPOIs(nearestBanks, currentX, currentY);
 	
 	var stationContainer = document.createElement("div");
 	stationContainer.innerHTML = "<span class='box-title'>Nearest transit stations:<br /></span>";
 	nearestDiv.appendChild(stationContainer);
 	
-	//Display closest transit info
+	//Display closest transit info.
 	var stationInfo = document.createElement("div");
 	stationInfo.style.lineHeight = "150%";
 	stationContainer.appendChild(stationInfo);
@@ -250,7 +251,7 @@ if (shouldSetUpNavigator)
 	
 	var nearestStations = findNearestPlaces(currentX, currentY, 2, "station");
 	
-	stationInfo.innerHTML += displayPlaces(nearestStations, currentX, currentY);
+	stationInfo.innerHTML += displayPOIs(nearestStations, currentX, currentY);
 	
 	
 	nearestDiv.appendChild(makeElement("<div class='divider-line'>"));
@@ -259,7 +260,7 @@ if (shouldSetUpNavigator)
 	pubContainer.innerHTML = "<span class='box-title'>Nearest local pubs:<br /></span>";
 	nearestDiv.appendChild(pubContainer);
 	
-	//Display closest transit info
+	//Display closest transit info.
 	var pubInfo = document.createElement("div");
 	pubInfo.style.lineHeight = "150%";
 	pubContainer.appendChild(pubInfo);
@@ -270,36 +271,13 @@ if (shouldSetUpNavigator)
 	
 	var nearestPubs = findNearestPlaces(currentX, currentY, 3, "pub");
 	
-	pubInfo.innerHTML += displayPlaces(nearestPubs, currentX, currentY);
-	
-	
-	function updateLocationsHRs()
+	pubInfo.innerHTML += displayPOIs(nearestPubs, currentX, currentY);
+
+	function updateLocationsDividers()
 	{
-		var locationElements = nearestDiv.children;
-		for (var i = 0; i < locationElements.length; i++)
-		{
-			if (locationElements[i].className == "divider-line")
-			{
-				var followedByVisibleDiv = false;
-				for (var j = i + 1; j < locationElements.length; j++)
-				{
-					if (locationElements[j].className != "divider-line" && locationElements[j].style.display == "block") 
-					{
-						followedByVisibleDiv = true;
-					}
-				}
-				
-				if (locationElements[i-1].style.display == "block" && followedByVisibleDiv)
-				{
-					locationElements[i].style.display = "block";
-				}
-				else
-				{
-					locationElements[i].style.display = "none";
-				}
-			}
-		}
+		updateDividersInDiv(nearestDiv);
+		nearestDiv.style.display = displayBanks.checked || displayTransits.checked || displayPubs.checked ? "block" : "none";
 	}
 	
-	updateLocationsHRs();
+	updateLocationsDividers();
 }

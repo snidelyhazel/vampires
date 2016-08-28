@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
 	"name": "Ravenblack Navigator",
-	"version": "0.7.1",
+	"version": "0.7.2",
 	"description": "Streamlines Ravenblack interface for flexibility and accessibility.",
 	"content_scripts":	[
 		{
@@ -21,6 +21,7 @@
 							"location.js",
 							"distance.js",
 							"landmark.js",
+							"vamploc.js",
 							"shop.js",
 							"warmode.js",
 							"keybind.js"
