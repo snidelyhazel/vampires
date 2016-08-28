@@ -18,6 +18,9 @@ if (shouldSetUpNavigator)
 		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "text") return;
 		//If a password form is active, temporarily disable keybinding, i.e. changing your password in MyVamp.
 		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "password") return;
+		//If a number form is active, temporarily disable keybinding, i.e. changing quantity in shopping calc.
+		if (document.activeElement.type && document.activeElement.type.toLowerCase() == "number") return;
+
 		//if (document.activeElement == document.body) return;
 		
 		//If a select form, i.e. dropdown, is active, temporarily disable actions linked to keybinding. 

@@ -421,6 +421,7 @@ if (shouldSetUpNavigator)
 	financialsBox.style.display = displayFinancials.checked ? "block" : "none";
 	inventoryBox.style.display  = displayInventory.checked  ? "block" : "none";
 	powersBox.style.display     = displayPowers.checked     ? "block" : "none";
+	myVampDiv.style.display     = displayFinancials.checked || displayInventory.checked || displayPowers.checked ? "block" : "none";
 	var financialsLine = makeElement("<div class = 'divider-line'>");
 	var inventoryLine = makeElement("<div class = 'divider-line'>");
 	

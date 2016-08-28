@@ -26,6 +26,7 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayFinancials", event.target.checked ? 1 : 0);
 		financialsBox.style.display = displayFinancials.checked ? "block" : "none";
+		myVampDiv.style.display     = displayFinancials.checked || displayInventory.checked || displayPowers.checked ? "block" : "none";
 	}
 	
 	//Set displayInventory localStorage.
@@ -34,6 +35,7 @@ if (shouldSetUpNavigator)
 		localStorage.setItem("displayInventory", event.target.checked ? 1 : 0);
 		inventoryBox.style.display  = displayInventory.checked  ? "block" : "none";
 		financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
+		myVampDiv.style.display     = displayFinancials.checked || displayInventory.checked || displayPowers.checked ? "block" : "none";
 	}
 	
 	//Set displayPowers localStorage.
@@ -43,6 +45,7 @@ if (shouldSetUpNavigator)
 		powersBox.style.display     = displayPowers.checked     ? "block" : "none";
 		financialsLine.style.display = (displayInventory.checked || displayPowers.checked) ? "block" : "none";
 		inventoryLine.style.display = displayPowers.checked ? "block" : "none";
+		myVampDiv.style.display     = displayFinancials.checked || displayInventory.checked || displayPowers.checked ? "block" : "none";
 	}
 	
 	//Set displayBanks localStorage.
@@ -50,7 +53,7 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayBanks", event.target.checked ? 1 : 0);
 		bankContainer.style.display = displayBanks.checked ? "block" : "none";
-		updateLocationsHRs();
+		updateLocationsDividers();
 	}
 	
 	//Set displayTransits localStorage.
@@ -58,7 +61,7 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayTransits", event.target.checked ? 1 : 0);
 		stationContainer.style.display = displayTransits.checked ? "block" : "none";
-		updateLocationsHRs();
+		updateLocationsDividers();
 	}
 	
 	//Set displayPubs localStorage.
@@ -66,7 +69,7 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayPubs", event.target.checked ? 1 : 0);
 		pubContainer.style.display = displayPubs.checked ? "block" : "none";
-		updateLocationsHRs();
+		updateLocationsDividers();
 	}
 	
 	//Set displayDistCalc localStorage.
@@ -74,6 +77,7 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayDistCalc", event.target.checked ? 1 : 0);
 		moveCalculatorDiv.style.display = displayDistCalc.checked ? "block" : "none";
+		updateSearchDividers();
 	}
 	
 	//Set displayLandmark localStorage.
@@ -81,13 +85,22 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("displayLandmark", event.target.checked ? 1 : 0);
 		findLandmarkDiv.style.display = displayLandmark.checked ? "block" : "none";
+		updateSearchDividers();
+	}
+	
+	//Set displayVampLoc localStorage.
+	function updateDisplayVampLocStorage(event)
+	{
+		localStorage.setItem("displayVampLoc", event.target.checked ? 1 : 0);
+		vampLocatorDiv.style.display = displayVampLoc.checked ? "block" : "none";
+		updateSearchDividers();
 	}
 	
 	//Set displayShopList localStorage.
 	function updateDisplayShopListStorage(event)
 	{
 		localStorage.setItem("displayShopList", event.target.checked ? 1 : 0);
-		shoppingAreaDiv.style.display = displayShopList.checked ? "block" : "none";
+		shoppingAreaTabs.div.style.display = displayShopList.checked ? "block" : "none";
 	}
 	
 	var optionsTriangle = makeElement("<div class='box-title'>► Options</div>");
@@ -119,6 +132,7 @@ if (shouldSetUpNavigator)
 	var pubsDiv     = document.createElement("div");
 	var distCalcDiv = document.createElement("div");
 	var landmarkDiv = document.createElement("div");
+	var vampLocDiv  = document.createElement("div");
 	var shopListDiv = document.createElement("div");
 	optionsDiv.appendChild(bindKeyDiv);
 	optionsDiv.appendChild(radioForm);
@@ -136,6 +150,7 @@ if (shouldSetUpNavigator)
 	optionsDiv.appendChild(pubsDiv);
 	optionsDiv.appendChild(distCalcDiv);
 	optionsDiv.appendChild(landmarkDiv);
+	optionsDiv.appendChild(vampLocDiv);
 	optionsDiv.appendChild(shopListDiv);
 	
 	
@@ -156,6 +171,7 @@ if (shouldSetUpNavigator)
 	pubsDiv.innerHTML     = '<label for = "pubs">Pubs</label><input type = "checkbox" id = "pubs" tabindex = "-1">';
 	distCalcDiv.innerHTML = '<label for = "distCalc">Distance Calculator</label><input type = "checkbox" id = "distCalc" tabindex = "-1">';
 	landmarkDiv.innerHTML = '<label for = "landmark">Landmark Finder</label><input type = "checkbox" id = "landmark" tabindex = "-1">';
+	vampLocDiv.innerHTML  = '<label for = "vampLoc">Vampire Locator</label><input type = "checkbox" id = "vampLoc" tabindex = "-1">';
 	shopListDiv.innerHTML = '<label for = "shopList">Shopping List</label><input type = "checkbox" id = "shopList" tabindex = "-1">';
 	
 	bindKeyDiv.title = "Action controls:<br /> \
@@ -216,6 +232,7 @@ if (shouldSetUpNavigator)
 	pubsDiv.title       = "Displays 3 nearest local pubs.";
 	distCalcDiv.title   = "Calculates distance between two intersections.";
 	landmarkDiv.title   = "Finds landmarks near any intersection.";
+	vampLocDiv.title    = "Finds vampires near any intersection.";
 	shopListDiv.title   = "Calculates cost of item shopping list.";
 	
 	//Make reference to loginBox checkbox.
@@ -278,6 +295,13 @@ if (shouldSetUpNavigator)
 	displayLandmark.checked = localStorage.getItem("displayLandmark") != 0 ? true : false;
 	//When state change, update localStorage.
 	displayLandmark.onchange = updateDisplayLandmarkStorage;
+	
+	//Make reference to vampLoc checkbox.
+	var displayVampLoc = vampLocDiv.children[1];
+	//Get current landmark value.
+	displayVampLoc.checked = localStorage.getItem("displayVampLoc") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayVampLoc.onchange = updateDisplayVampLocStorage;
 	
 	//Make reference to shopList checkbox.
 	var displayShopList = shopListDiv.children[1];
@@ -380,6 +404,36 @@ if (shouldSetUpNavigator)
 			img.parentElement.insertBefore(newImg, img);
 			//Remove original ?.
 			img.parentElement.removeChild(img)
+		}
+	}
+
+	
+	//Controls display of dividers based on whether content is set to display.
+	function updateDividersInDiv(parentElement)
+	{
+		var children = parentElement.children;
+		for (var i = 0; i < children.length; i++)
+		{
+			if (children[i].className == "divider-line")
+			{
+				var followedByVisibleDiv = false;
+				for (var j = i + 1; j < children.length; j++)
+				{
+					if (children[j].className != "divider-line" && children[j].style.display == "block") 
+					{
+						followedByVisibleDiv = true;
+					}
+				}
+				
+				if (children[i-1].style.display == "block" && followedByVisibleDiv)
+				{
+					children[i].style.display = "block";
+				}
+				else
+				{
+					children[i].style.display = "none";
+				}
+			}
 		}
 	}
 }

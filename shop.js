@@ -4,118 +4,108 @@
 
 if (shouldSetUpNavigator)
 {
-	//Create div to handle display of shop tabs.
-	var shoppingAreaDiv = document.createElement("div");
-	shoppingAreaDiv.style.display = displayShopList.checked ? "block" : "none";
-	rightSideDiv.appendChild(shoppingAreaDiv);
-	
-	//Create unordered list to contain shop tabs.
-	var tabulation = makeElement("<ul style='list-style: none; padding: 0; margin: 0; position: 0; font-size: 90%;'></ul>");
-	shoppingAreaDiv.appendChild(tabulation);
-	
-	//Create line to assist with display of active shop tab.
-	var line = makeElement("<div style='position: absolute; width: 100%; border: 0px solid; border-color: white; border-bottom-width: 1px; margin-top: -1px; padding: 5px 0 3px 0;'>&nbsp;</div>");
-	tabulation.appendChild(line);
-	
-	//Set default style for shop tabs.
-	function applyTabStyles(tab)
+	function makeTabs(storageName, tabList)
 	{
-		tab.style.float = "left";
-		tab.style.border = "1px solid";
-		tab.style.borderColor = "white";
-		tab.style.borderBottomWidth = "0";
-		tab.style.margin = "0 5px 0 0";
-		tab.style.padding = "5px 5px 3px 5px";
-		tab.style.position = "relative";
-		tab.style.background = "black";
+		var tabAreaDiv = document.createElement("div");
+		
+		//Create unordered list to contain tabs.
+		var tabulation = makeElement("<ul style='list-style: none; padding: 0; margin: 0; position: 0; font-size: 90%;'></ul>");
+		tabAreaDiv.appendChild(tabulation);
+		
+		//Create line to assist with display of active tab.
+		var line = makeElement("<div style='position: absolute; width: 100%; border: 0px solid; border-color: white; border-bottom-width: 1px; margin-top: -1px; padding: 5px 0 3px 0;'>&nbsp;</div>");
+		tabulation.appendChild(line);
+		
+		//Create border box to hold shop tab contents.
+		var tabPages = makeElement("<div class='border-box' style='border: 1px solid; border-top-width: 0px; clear: both;'></div>");
+		tabAreaDiv.appendChild(tabPages);
+		tabPages.style.width = "193px";
+		
+		//Displays active tab, setting to localStorage.
+		function selectTab(selectedTab)
+		{
+			//Removes bottom border from active tab.
+			for (var i = 0; i < tabulation.children.length; i++)
+			{
+				var tab = tabulation.children[i];
+				if (tab.firstChild.id == (selectedTab + "Anchor"))
+				{
+					tab.style.borderBottomWidth = "0px";
+					tab.style.paddingBottom = "4px";
+				}
+				else
+				{
+					tab.style.borderBottomWidth = "1px";
+					tab.style.paddingBottom = "3px";
+				}
+			}
+			
+			//Displays contents of active tab.
+			for (var i = 0; i < tabPages.children.length; i++)
+			{
+				var content = tabPages.children[i];
+				content.style.display = (content.id == selectedTab) ? "block" : "none";
+			}
+			
+			//Set up contents of active tab.
+			for (var i = 0; i < tabList.length; i++)
+			{
+				if (selectedTab == tabList[i].name)
+				{
+					tabList[i].display();
+					break;
+				}
+			}
+			
+			//Store active tab in localStorage.
+			localStorage.setItem(storageName, selectedTab);
+		}
+
+		function createTabTitle(title, name)
+		{
+			//Adds tab as a list item.
+			var tabTitle = makeElement("<li style='float: left; border: 1px solid; border-color: white; border-bottom-width: 0; margin: 0 5px 0 0; padding: 5px 5px 5px 5px; position: relative; background: black;'></li>");
+			tabulation.appendChild(tabTitle);
+
+			//Create anchor to link to tab contents.
+			var tabAnchor = makeElement("<a id='" + name + "Anchor' style='cursor: pointer; text-decoration: none;'>" + title + "</a>");
+			tabTitle.appendChild(tabAnchor);
+			tabAnchor.addEventListener("click", function(event)
+			{
+				selectTab(name);
+			});
+			
+			if (name == tabList[0].name)
+			{
+				tabTitle.style.paddingBottom = "4px";
+			}
+			if (name == tabList[1].name)
+			{
+				tabTitle.style.marginRight = "0px";
+				tabTitle.style.float = "right";
+			}
+		}
+		
+		for (var i = 0; i < tabList.length; i++)
+		{
+			createTabTitle(tabList[i].title, tabList[i].name);
+			tabPages.appendChild(tabList[i].content);
+		}
+			
+		return {div: tabAreaDiv, selectTab: selectTab};
 	}
-	
+
+	/*
 	//Tracks active shop tab.
 	function getHash(url)
 	{
 		var hashPos = url.lastIndexOf ("#");
 		return url.substring(hashPos + 1);
 	}
-	
-	//Sets active tab to shoppingCalc by default.
-	var currentTab = "shoppingCalc";
-	
-	//Displays active tab, setting to localStorage.
-	function selectTab(selectedTab)
-	{
-		currentTab = selectedTab;
-
-		//Removes bottom border from active tab.
-		for (var i = 0; i < tabulation.children.length; i++)
-		{
-			var tab = tabulation.children[i];
-			if (tab.firstChild.id == (currentTab + "Anchor"))
-			{
-				tab.style.borderBottomWidth = "0px";
-				tab.style.paddingBottom = "4px";
-			}
-			else
-			{
-				tab.style.borderBottomWidth = "1px";
-				tab.style.paddingBottom = "3px";
-			}
-		}
-		
-		//Displays contents of active tab.
-		for (var i = 0; i < tabPages.children.length; i++)
-		{
-			var content = tabPages.children[i];
-			content.style.display = (content.id == currentTab) ? "block" : "none";
-		}
-		
-		//Set up contents of active tab.
-		if (currentTab == "shoppingList")
-		{
-			displayShoppingList();
-		}
-		else if (currentTab == "shoppingCalc")
-		{
-			displayShoppingCalc();
-		}
-		
-		//Store active tab in localStorage.
-		localStorage.setItem("shopTab", currentTab);
-	}
-	
-	//Adds shoppingCalc tab as a list item.
-	var shoppingCalc = document.createElement("li");
-	tabulation.appendChild(shoppingCalc);
-	//Create anchor to link to shoppingCalc contents.
-	var shoppingCalcAnchor = makeElement("<a id='shoppingCalcAnchor' style='cursor: pointer; text-decoration: none;'>Item calculator</a>");
-	shoppingCalc.appendChild(shoppingCalcAnchor);
-	shoppingCalcAnchor.addEventListener("click", function(event)
-	{
-		selectTab("shoppingCalc");
-	});
-	applyTabStyles(shoppingCalc);
-	shoppingCalc.style.paddingBottom = "4px";
-	
-	//Adds shoppingList tab as a list item.
-	var shoppingList = document.createElement("li");
-	tabulation.appendChild(shoppingList);
-	//Create anchor to link to shoppingList contents.
-	var shoppingListAnchor = makeElement("<a id='shoppingListAnchor' style='cursor: pointer; text-decoration: none;'>Shopping list</a>");
-	shoppingList.appendChild(shoppingListAnchor);
-	shoppingListAnchor.addEventListener("click", function(event)
-	{
-		selectTab("shoppingList");
-	});
-	applyTabStyles(shoppingList);
-	shoppingList.style.float = "right";
-	shoppingList.style.marginRight = "0px";
-	
-	//Create border box to hold shop tab contents.
-	var tabPages = makeElement("<div class='border-box' style='border: 1px solid; border-top-width: 0px; clear: both;'></div>");
-	shoppingAreaDiv.appendChild(tabPages);
+	*/
 	
 	//Create contents of shopCalc.
 	var shopCalcDiv = document.createElement("div");
-	tabPages.appendChild(shopCalcDiv);
 	shopCalcDiv.id = "shoppingCalc";
 	
 	//Create shopCalc options layout.
@@ -317,7 +307,7 @@ if (shouldSetUpNavigator)
 			totalPriceDiv.innerHTML = newPrice;
 		}
 		
-		if (currentTab == "shoppingList")
+		if (localStorage.getItem("shopTab") == "shoppingList")
 		{
 			displayShoppingList();
 		}
@@ -399,9 +389,14 @@ if (shouldSetUpNavigator)
 		localStorage.setItem("shoppingCart" + userName, shoppingCart.join(";"));
 	});
 	
+	function displayShoppingCalc()
+	{
+		shopCalcDiv.insertBefore(shopAlignedMenu, shopCalcDiv.firstChild);
+		rowCharismaUnit.insertBefore(charismaDiv, rowCharismaUnit.firstChild);
+	}
+	
 	//Create contents of shopList.
 	var shopListTab = document.createElement("div");
-	tabPages.appendChild(shopListTab);
 	shopListTab.id = "shoppingList";
 	shopListTab.style.display = "none";
 	
@@ -409,12 +404,6 @@ if (shouldSetUpNavigator)
 	
 	var shopButtonsDiv = document.createElement("div");
 	
-	function displayShoppingCalc()
-	{
-		shopCalcDiv.insertBefore(shopAlignedMenu, shopCalcDiv.firstChild);
-		rowCharismaUnit.insertBefore(charismaDiv, rowCharismaUnit.firstChild);
-	}
-
 	//Create button to clear contents of shopping cart.
 	var clearCartButton = document.createElement("button");
 	clearCartButton.innerHTML = "Clear cart";
@@ -594,7 +583,17 @@ if (shouldSetUpNavigator)
 		shopListDiv.innerHTML += shoppingContentsDisplay;
 	}
 	
+
+	//Create div to handle display of shop tabs.
+	var shoppingAreaTabs = makeTabs("shopTab", [
+		{title: "Item Calculator", name: "shoppingCalc", display: displayShoppingCalc, content: shopCalcDiv},
+		{title: "Shopping list", name: "shoppingList", display: displayShoppingList, content: shopListTab},
+	]);
+
+	shoppingAreaTabs.div.style.display = displayShopList.checked ? "block" : "none";
+	rightSideDiv.appendChild(shoppingAreaTabs.div);
+
 	var savedTab = localStorage.getItem("shopTab");
 	if (savedTab == null) savedTab = "shoppingCalc";
-	selectTab(savedTab);
+	shoppingAreaTabs.selectTab(savedTab);
 }
