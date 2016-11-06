@@ -242,15 +242,15 @@ if (shouldSetUpNavigator)
 						Hides say, shout, telepathy and give commands.<br /> \
 						Disables B and R keybinding.";
 	
-	financialsDiv.title = "Tracks pocket change and bank account info. Loaded from Omnibank or My Vampire page if you have a Scroll of Accounting.";
+	financialsDiv.title = "Tracks pocket change and bank account info. <br />Loaded from Omnibank or My Vampire page <br />if you have a Scroll of Accounting.";
 	inventoryDiv.title  = "Tracks current inventory. Loaded from My Vampire page.";
-	powersDiv.title     = "Tracks powers, and current quest info if applicable. Loaded from My Vampire page.";
+	powersDiv.title     = "Tracks powers, and current quest info if applicable. <br />Loaded from My Vampire page.";
 	banksDiv.title      = "Displays 5 nearest Omnibank branches.";
 	transitsDiv.title   = "Displays 2 nearest transit stations.";
 	pubsDiv.title       = "Displays 3 nearest local pubs.";
 	distCalcDiv.title   = "Calculates distance between two intersections.";
 	landmarkDiv.title   = "Finds landmarks near any intersection.";
-	vampLocDiv.title    = "Finds vampires near any intersection.";
+	vampLocDiv.title    = "Lists your vampires close to a given intersection. <br />Based on last-known location.";
 	shopListDiv.title   = "Calculates cost of item shopping list.";
 	
 	//Make reference to warMode checkbox.
@@ -266,7 +266,7 @@ if (shouldSetUpNavigator)
 	//Make reference to loginBox checkbox.
 	var loginBox = loginBoxDiv.children[1];
 	//Synchronize loginBox checkbox with localStorage.
-	useStorage(loginBox, "loginBox", false, false);
+	useStorage(loginBox, "loginBox", true, false);
 	
 	//Make reference to financials checkbox.
 	var displayFinancials = financialsDiv.children[1];
@@ -412,6 +412,8 @@ if (shouldSetUpNavigator)
 	distCalcDiv.addEventListener("mouseleave", onHoverOut);
 	landmarkDiv.addEventListener("mouseenter", onHoverOver);
 	landmarkDiv.addEventListener("mouseleave", onHoverOut);
+	vampLocDiv.addEventListener("mouseenter", onHoverOver);
+	vampLocDiv.addEventListener("mouseleave", onHoverOut);
 	shopListDiv.addEventListener("mouseenter", onHoverOver);
 	shopListDiv.addEventListener("mouseleave", onHoverOut);
 	

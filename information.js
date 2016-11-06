@@ -9,13 +9,81 @@ if (shouldSetUpNavigator)
 	{
 		localStorage.setItem("hittracker" + userName, ""); 
 	}
-
-	function recordQuest(questName, questDescription, questDeadline, questLegsLeft)
+	
+	function gainPower(powerName, hasLevels)
 	{
-		localStorage.setItem("quest" + userName, questName);
-		localStorage.setItem("questDescription" + userName, questDescription);
-		localStorage.setItem("questDeadline" + userName, questDeadline);
-		localStorage.setItem("questLegsLeft" + userName, questLegsLeft);
+		var powersStorage = localStorage.getItem("powers" + userName);
+		if (powersStorage == null)
+		{
+			powersStorage = "";
+		}
+		
+		var powersList = powersStorage.split("<br />");
+		var alreadyHasPower = false;
+
+		for (var j = 0; j < powersList.length; j++)
+		{
+			var powerString = powersList[j];
+			
+			if (powerString.includes(powerName))
+			{
+				alreadyHasPower = true;
+				var parensIndex = powerString.indexOf("(");
+				if (parensIndex != -1)
+				{
+					var level = parseInt(powerString.substring(parensIndex + 1, parensIndex + 2));
+					level++;
+					powersList[j] = powerName + "(" + level + ")";
+				}
+				break;
+			}
+		}
+
+		if (!alreadyHasPower)
+		{
+			if (hasLevels)
+			{
+				powersList.push(powerName + "(1)");
+			}
+			else
+			{
+				powersList.push(powerName);
+			}
+		}
+
+		powersStorage = powersList.join("<br />");
+		localStorage.setItem("powers" + userName, powersStorage);
+	}
+	
+	function endQuest(quest)
+	{
+		gainPower(quest.name, quest.levels != 1);
+		
+		localStorage.removeItem("quest" + userName);
+		localStorage.removeItem("questDescription" + userName);
+		localStorage.removeItem("questDeadline" + userName);
+		localStorage.removeItem("questLegsLeft" + userName);
+	}
+	
+	function recordQuest(quest, questDescription, questDeadline, questLegsLeft)
+	{
+		console.log("recording quest: ", quest, questDescription, questLegsLeft);
+		if (questLegsLeft <= 0)
+		{
+			endQuest(quest);
+		}
+		else
+		{
+			localStorage.setItem("quest" + userName, quest.name);
+			localStorage.setItem("questDescription" + userName, questDescription);
+			localStorage.setItem("questDeadline" + userName, questDeadline);
+			localStorage.setItem("questLegsLeft" + userName, questLegsLeft);
+		}
+	}
+
+	function extractInBetween(fullText, beforeText, afterText)
+	{
+		return fullText.substring(fullText.indexOf(beforeText) + beforeText.length, fullText.indexOf(afterText));
 	}
 
 	function getQuestLevel(questName)
@@ -23,8 +91,12 @@ if (shouldSetUpNavigator)
 		//Determine quest level from current powers.
 		var questLevel = 0;
 
-		var powersString = localStorage.getItem("powers" + userName);
-		var powers = powersString.split("<br />");
+		var powersStorage = localStorage.getItem("powers" + userName);
+		if (powersStorage == null)
+		{
+			powersStorage = "";
+		}
+		var powers = powersStorage.split("<br />");
 		for (var j = 0; j < powers.length; j++)
 		{
 			var power = powers[j];
@@ -37,11 +109,6 @@ if (shouldSetUpNavigator)
 		return questLevel;
 	}
 	
-	function extractInBetween(fullText, beforeText, afterText)
-	{
-		return fullText.substring(fullText.indexOf(beforeText) + beforeText.length, fullText.indexOf(afterText));
-	}
-
 	function parseNumbers(numberString)
 	{
 		if (isNaN(numberString))
@@ -123,6 +190,15 @@ if (shouldSetUpNavigator)
 			message = element.outerHTML;
 		}
 		
+		for (var i = 0; i < powers.length; i++)
+		{
+			var power = powers[i];
+			if (message.includes(power.gainCue))
+			{
+				gainPower(power.name, power.hasLevels)
+			}
+		}
+		
 		for (var i = 0; i < quests.length; i++)
 		{
 			var quest = quests[i];
@@ -134,15 +210,14 @@ if (shouldSetUpNavigator)
 				if (message.includes(startCue))
 				{
 					var description = "";
-					var legsLeft = 1;
+					var legsLeft = quest.legs[questLevel];
 					switch (quest.name)
 					{
 						case "Celerity":
-							legsLeft = parseInt(extractInBetween(message, "a series of ", " objects from"));
 							description = "collect " + legsLeft + " items, travel--no transits--to " + extractInBetween(message, "<i>Run</i> to ", ", and buy a drink") + " and buy a drink.";
 							break;
 						case "Charisma":
-							description = "persuade " + extractInBetween(message, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(message, "to visit ", " there and") + " and say \"" + extractInBetween(message, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
+							description = "persuade " + extractInBetween(message, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(message, "to visit ", " there and") + " at " + extractInBetween(message, "that business near ", " has been slow") + " and say \"" + extractInBetween(message, "tell the bartender \"", "\". You have ") + "\", without visiting the pub yourself.";
 							break;
 						case "Locate":
 							description = "go to the NW corner of " + extractInBetween(message, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have " + [10, 15, 25][questLevel] + " blood to spare.";
@@ -154,15 +229,14 @@ if (shouldSetUpNavigator)
 							description = "find and kill a vampire hunter.";
 							break;
 						case "Suction":
-							legsLeft = 20;
 							description = "drink from 20 vampires whose blood is higher than yours.";
 							break;
 					}
 
-					recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
+					recordQuest(quest, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
 				}
 			}
-
+			
 			if (message.includes(quest.stepCue))
 			{
 				var description = localStorage.getItem("questDescription" + userName);
@@ -180,25 +254,47 @@ if (shouldSetUpNavigator)
 						break;
 				}
 
-				recordQuest(quest.name, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
+				recordQuest(quest, description, Date.now() + quest.days * 24 * 60 * 60 * 1000, legsLeft);
+			}
+			
+			if (message.includes(quest.endCue))
+			{
+				endQuest(quest);
 			}
 		}
 		
 		if (message.indexOf(" coin") != -1)
 		{
-			var robString = message.substring(0, message.indexOf(" coin"));
-			robString = robString.substring(robString.lastIndexOf(" ")+1);
-			var robAmount = (robString == "one") ? 1 : parseNumbers(robString);
+			var transactionString = message.substring(0, message.indexOf(" coin"));
+			transactionString = transactionString.substring(transactionString.lastIndexOf(" ")+1);
+			var transactionAmount = parseNumbers(transactionString);
 			var currentCoinsOn = localStorage.getItem("coinsOn" + userName);
 			currentCoinsOn = parseInt(currentCoinsOn);
 			var newCoinsOn;
+			
 			if (dealtIt)
 			{
-				newCoinsOn = currentCoinsOn + robAmount;
+				var give = message.includes("You give ");
+				if (give)
+				{
+					newCoinsOn = currentCoinsOn - transactionAmount;
+				}
+				else
+				{
+					newCoinsOn = currentCoinsOn + transactionAmount;
+				}
 			}
 			else
 			{
-				newCoinsOn = currentCoinsOn - robAmount;
+				var receive = message.includes(" gave you ");
+				if (receive)
+				{
+					newCoinsOn = currentCoinsOn + transactionAmount;
+				}
+				else
+				{
+					newCoinsOn = currentCoinsOn - transactionAmount;
+				}
 			}
 			localStorage.setItem("coinsOn" + userName, newCoinsOn);
 		}

@@ -131,7 +131,7 @@ function getLoginIndex(username)
 }
 
 //If login is successful, save login.
-if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
+if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") != "0")
 {
 	//Get value in ip cookie.
 	var currentLogin = getCookie("ip");
@@ -216,9 +216,10 @@ if (shouldSetUpNavigator)
 		header.appendChild(child);
 	}
 	
-	var useageAgreement = mainDiv.children[mainDiv.children.length-1];
+	var usageAgreement = mainDiv.children[mainDiv.children.length-1];
 	header.appendChild(document.createElement("br"));
-	header.appendChild(useageAgreement.children[0]);
+	header.appendChild(usageAgreement.children[0]);
+	mainDiv.removeChild(usageAgreement);
 	
 	//Remove footer with biterlink.
 	var textInfo = document.getElementsByClassName("spacey");
@@ -249,9 +250,9 @@ if (shouldSetUpNavigator)
 	//Create div container for checkbox.
 	var leftSideDiv = document.createElement("div");
 	//Put div above grid.
-	document.body.insertBefore(leftSideDiv, document.body.firstChild);
+	mainDiv.insertBefore(leftSideDiv, mainDiv.firstChild);
 	//Put div on left side.
-	leftSideDiv.style.float = "left";
+	//leftSideDiv.style.float = "left";
 	leftSideDiv.style.width = "150px";
 	
 	
@@ -260,9 +261,13 @@ if (shouldSetUpNavigator)
 	//Create div container for checkbox.
 	var rightSideDiv = document.createElement("div");
 	//Put div above grid.
-	document.body.insertBefore(rightSideDiv, document.body.firstChild);
+	mainDiv.appendChild(rightSideDiv);
 	//Put div on right side.
-	rightSideDiv.style.float = "right";
+	//rightSideDiv.style.float = "right";
 	//Define position of div container.
 	rightSideDiv.style.position = "relative";
+	
+	mainDiv.style.display = "flex";
+	mainDiv.style.justifyContent = "space-between";
+	mainDiv.style.width = "100%";
 }
