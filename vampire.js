@@ -245,7 +245,7 @@ if (shouldSetUpNavigator)
 							legsLeft--;
 						}
 
-						questDescription = "collect " + quest.legs[questLevel] + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
+						questDescription = "collect " + legsLeft + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
 						break;
 					case "Charisma":
 						
@@ -420,7 +420,7 @@ if (shouldSetUpNavigator)
 						return false;
 					}
 				}
-			}
+			});
 		}
 		else if (form.action.value == "pawn")
 		{

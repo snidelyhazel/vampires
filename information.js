@@ -299,6 +299,59 @@ if (shouldSetUpNavigator)
 			localStorage.setItem("coinsOn" + userName, newCoinsOn);
 		}
 		
+		// Save information about shops.
+		if (message.includes('The barman says "The closest shop to here is '))
+		{
+			var shopName = extractInBetween(message, 'The barman says "The closest shop to here is ', ', right by ');
+			var shopLocation = extractInBetween(message, ', right by ', '. I do wish those damn magic shops would stay still for a while."');
+			var streetNames = shopLocation.split(" and ");
+			var streetNameX = streetNames[0].toLowerCase();
+			var streetNameY = streetNames[1].toLowerCase();
+			if (streetNameX.indexOf("the ") == 0) streetNameX = streetNameX.substring(4);
+			if (streetNameY.indexOf("the ") == 0) streetNameY = streetNameY.substring(4);
+			var streetX = -1;
+			var streetY = -1;
+			for (var i = 0; i < streetArray.length; i++)
+			{
+				if (streetArray[i][1].toLowerCase() == streetNameX)
+				{
+					streetX = streetArray[i][0];
+				}
+				if (streetArray[i][2].toLowerCase() == streetNameY)
+				{
+					streetY = streetArray[i][0];
+				}
+			}
+			
+			saveMovingPlace(shopName, streetX, streetY, true);
+		}
+		
+		// Save information about guilds.
+		if (message.includes('The barman says "Pssst. '))
+		{
+			var guildName = extractInBetween(message, 'The barman says "Pssst. ', ' is right next to ');
+			var guildLocation = extractInBetween(message, ' is right next to ', ' today. I don\'t know how much longer it will be there, though."');
+			var streetNames = guildLocation.split(" and ");
+			var streetNameX = streetNames[0].toLowerCase();
+			var streetNameY = streetNames[1].toLowerCase();
+			if (streetNameX.indexOf("the ") == 0) streetNameX = streetNameX.substring(4);
+			if (streetNameY.indexOf("the ") == 0) streetNameY = streetNameY.substring(4);
+			var streetX = -1;
+			var streetY = -1;
+			for (var i = 0; i < streetArray.length; i++)
+			{
+				if (streetArray[i][1].toLowerCase() == streetNameX)
+				{
+					streetX = streetArray[i][0];
+				}
+				if (streetArray[i][2].toLowerCase() == streetNameY)
+				{
+					streetY = streetArray[i][0];
+				}
+			}
+			saveMovingPlace(guildName, streetX, streetY, false);
+		}
+		
 		localStorage.setItem("hittracker" + userName, localStorage.getItem("hittracker" + userName) + message);
 	}
 	

@@ -72,6 +72,13 @@ if (shouldSetUpNavigator)
 		updateLocationsDividers();
 	}
 	
+	//Set displayMovingPlaces localStorage.
+	function updateDisplayMovingPlacesStorage(event)
+	{
+		localStorage.setItem("displayMovingPlaces", event.target.checked ? 1 : 0);
+		movingPlacesTabs.div.style.display = displayMovingPlacesOption.checked ? "block" : "none";
+	}
+	
 	//Set displayDistCalc localStorage.
 	function updateDisplayDistCalcStorage(event)
 	{
@@ -129,13 +136,14 @@ if (shouldSetUpNavigator)
 	var inventoryDiv    = document.createElement("div");
 	var powersDiv       = document.createElement("div");
 	var locationsDiv    = document.createElement("div");
-	var banksDiv    = document.createElement("div");
-	var transitsDiv = document.createElement("div");
-	var pubsDiv     = document.createElement("div");
-	var distCalcDiv = document.createElement("div");
-	var landmarkDiv = document.createElement("div");
-	var vampLocDiv  = document.createElement("div");
-	var shopListDiv = document.createElement("div");
+	var banksDiv        = document.createElement("div");
+	var transitsDiv     = document.createElement("div");
+	var pubsDiv         = document.createElement("div");
+	var movingPlacesDiv = document.createElement("div");
+	var distCalcDiv     = document.createElement("div");
+	var landmarkDiv     = document.createElement("div");
+	var vampLocDiv      = document.createElement("div");
+	var shopListDiv     = document.createElement("div");
 	optionsDiv.appendChild(bindKeyDiv);
 	optionsDiv.appendChild(radioForm);
 	optionsDiv.appendChild(makeElement("<div class='divider-line'>"));
@@ -153,6 +161,7 @@ if (shouldSetUpNavigator)
 	optionsDiv.appendChild(banksDiv);
 	optionsDiv.appendChild(transitsDiv);
 	optionsDiv.appendChild(pubsDiv);
+	optionsDiv.appendChild(movingPlacesDiv);
 	optionsDiv.appendChild(distCalcDiv);
 	optionsDiv.appendChild(landmarkDiv);
 	optionsDiv.appendChild(vampLocDiv);
@@ -176,6 +185,7 @@ if (shouldSetUpNavigator)
 	banksDiv.innerHTML    = '<label for = "banks">Banks</label><input type = "checkbox" id = "banks" tabindex = "-1">';
 	transitsDiv.innerHTML = '<label for = "transits">Transits</label><input type = "checkbox" id = "transits" tabindex = "-1">';
 	pubsDiv.innerHTML     = '<label for = "pubs">Pubs</label><input type = "checkbox" id = "pubs" tabindex = "-1">';
+	movingPlacesDiv.innerHTML = '<label for = "movingPlaces">Moving Places</label><input type = "checkbox" id = "movingPlaces" tabindex = "-1">';
 	distCalcDiv.innerHTML = '<label for = "distCalc">Distance Calculator</label><input type = "checkbox" id = "distCalc" tabindex = "-1">';
 	landmarkDiv.innerHTML = '<label for = "landmark">Landmark Finder</label><input type = "checkbox" id = "landmark" tabindex = "-1">';
 	vampLocDiv.innerHTML  = '<label for = "vampLoc">Vampire Locator</label><input type = "checkbox" id = "vampLoc" tabindex = "-1">';
@@ -248,6 +258,7 @@ if (shouldSetUpNavigator)
 	banksDiv.title      = "Displays 5 nearest Omnibank branches.";
 	transitsDiv.title   = "Displays 2 nearest transit stations.";
 	pubsDiv.title       = "Displays 3 nearest local pubs.";
+	movingPlacesDiv.title = "Displays the current location of guilds and shops.";
 	distCalcDiv.title   = "Calculates distance between two intersections.";
 	landmarkDiv.title   = "Finds landmarks near any intersection.";
 	vampLocDiv.title    = "Lists your vampires close to a given intersection. <br />Based on last-known location.";
@@ -309,6 +320,13 @@ if (shouldSetUpNavigator)
 	displayPubs.checked = localStorage.getItem("displayPubs") == 1 ? true : false;
 	//When state change, update localStorage.
 	displayPubs.onchange = updateDisplayPubsStorage;
+	
+	//Make reference to movingPlaces checkbox.
+	var displayMovingPlacesOption = movingPlacesDiv.children[1];
+	//Get current movingPlaces value.
+	displayMovingPlacesOption.checked = localStorage.getItem("displayMovingPlaces") != 0 ? true : false;
+	//When state change, update localStorage.
+	displayMovingPlacesOption.onchange = updateDisplayMovingPlacesStorage;
 	
 	//Make reference to distCalc checkbox.
 	var displayDistCalc = distCalcDiv.children[1];
@@ -408,6 +426,8 @@ if (shouldSetUpNavigator)
 	transitsDiv.addEventListener("mouseleave", onHoverOut);
 	pubsDiv.addEventListener("mouseenter", onHoverOver);
 	pubsDiv.addEventListener("mouseleave", onHoverOut);
+	movingPlacesDiv.addEventListener("mouseenter", onHoverOver);
+	movingPlacesDiv.addEventListener("mouseleave", onHoverOut);
 	distCalcDiv.addEventListener("mouseenter", onHoverOver);
 	distCalcDiv.addEventListener("mouseleave", onHoverOut);
 	landmarkDiv.addEventListener("mouseenter", onHoverOver);

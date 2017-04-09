@@ -119,6 +119,83 @@ if (shouldSetUpNavigator)
 	currentX = parseInt(localStorage.getItem("currentX" + userName));
 	currentY = parseInt(localStorage.getItem("currentY" + userName));
 	
+	// Detect nearby shops on the grid, and save them.
+	for (var i = 0; i < spaces.length; i++)
+	{
+		var space = spaces[i];
+		
+		if (space.firstChild.className == "shop")
+		{
+			var offset = offsets[i];
+			var placeX = currentX - offset[0];
+			var placeY = currentY - offset[1];
+			var placeName = space.firstChild.innerText;
+			saveMovingPlace(placeName, placeX, placeY, true);
+		}
+	}
+	
+	// Detect when you land on a guild, and save its position.
+	for (var i = 0; i < borderDiv.childNodes.length; i++)
+	{
+		var childNode = borderDiv.childNodes[i];
+		if (childNode.nodeName == "#text" && childNode.data == "You have come upon a hidden guild!")
+		{
+			var placeName = borderDiv.childNodes[i + 2].innerText;
+			var placeX = currentX;
+			var placeY = currentY;
+			saveMovingPlace(placeName, placeX, placeY, false);
+		}
+	}
+	
+	//Disable actions that would fail the current quest.
+	if (localStorage.getItem("quest" + userName) == "Celerity")
+	{
+		for (var i = 0; i < stationArray.length; i++)
+		{
+			var station = stationArray[i];
+			if (station[1] == currentX && station[2] == currentY)
+			{
+				window.alert("You are currently on a Celerity quest. Using transit will cause you to fail. Please leave the station.");
+				
+				//Disable form to use transit.
+				for (var j = 0; j < forms.length; j++)
+				{
+					var form = forms[j];
+					if (form.action.value == "transit")
+					{
+						form.children[2].disabled = true;
+					}
+				}
+			}
+		}
+	}
+	if (localStorage.getItem("quest" + userName) == "Charisma")
+	{
+		for (var i = 0; i < pubArray.length; i++)
+		{
+			var pub = pubArray[i];
+			if (pub[1] >= currentX - 1 && pub[1] <= currentX + 1 && pub[2] >= currentY - 1 && pub[2] <= currentY + 1)
+			{
+				window.alert("You are currently on a Charisma quest. Entering this pub will cause you to fail. Please stay away.");
+				
+				//Disable form to move to pub.
+				for (var j = 0; j < spaces.length; j++)
+				{
+					var space = spaces[j];
+					if (space.children[0].className == "pub")
+					{
+						var form = space.children[2];
+						if (form != null && form.tagName == "FORM")
+						{
+							form.lastChild.disabled = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
 	//Place info
 	//TO-DO: comment this section!
 	function findNearestPlaces(coordX, coordY, howManyPlaces, placeType)
