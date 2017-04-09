@@ -46,9 +46,20 @@ if (shouldSetUpNavigator)
 			for (var i = 0; i < forms.length; i++)
 			{
 				var form = forms[i];
-				if (form.lastChild.value == "take")
+				if (form.lastChild.value == "take" && !form.lastChild.disabled)
 				{
+					var itemValue = parseInt(form.t.value) - 10;
+					
+					if (itemValue >= 0 && itemsByNumber[itemValue] != undefined) {
+						var itemName = itemsByNumber[itemValue];
+						
+						addItem(itemName, 1);
+					}
+					
 					form.submit();
+					
+					form.lastChild.disabled = true;
+					
 					return;
 				}
 			}

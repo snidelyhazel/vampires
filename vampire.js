@@ -10,6 +10,118 @@ if (shouldSetUpNavigator)
 	leftSideDiv.appendChild(myVampDiv);
 	myVampDiv.style.maxWidth = "150px";
 	
+	function addItem(itemName, itemQuantity)
+	{
+		var inventoryStorage = localStorage.getItem("inventory" + userName);
+		var inventoryArray = (inventoryStorage == null) ? [] : inventoryStorage.split("<br />");
+
+		if (inventoryStorage == "None")
+		{
+			inventoryList = [];
+		}
+		
+		var foundItem = false;
+		
+		//Iterate over items in inventory.
+		for (var k = 0; k < inventoryArray.length; k++)
+		{
+			var oldItemString = inventoryArray[k];
+			
+			//If item being purchased.
+			if (oldItemString.indexOf(itemName) != -1)
+			{
+				foundItem = true;
+				
+				//Add to quantity.
+				var oldQuantityString = oldItemString.substring(oldItemString.indexOf("(")+1, oldItemString.indexOf(")"));
+				var oldQuantity = parseInt(oldQuantityString);
+				itemQuantity += oldQuantity;
+				//var newQuantity = oldQuantity + itemQuantity;
+				inventoryArray[k] = itemName + " (" + itemQuantity + ")";
+			}
+		}
+		if (foundItem == false)
+		{
+			for (var k = 0; k < inventoryArray.length; k++)
+			{
+				if (inventoryArray[k] == "None")
+				{
+					inventoryArray.splice(k, 1);
+					k--;
+				}
+			}
+			//Add new item to inventory.
+			inventoryArray.push(itemName + " (" + itemQuantity + ")");
+		}
+		
+		//Save inventory.
+		localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+	}
+	
+	function removeItem(itemName, quantity, subtracts)
+	{
+		//Remove one of item from inventory.
+		var inventoryStorage = localStorage.getItem("inventory" + userName);
+		var inventoryList = inventoryStorage.split("<br />");
+		
+		if (inventoryStorage == "None")
+		{
+			inventoryList = [];
+		}
+
+		var foundItem = false;
+		
+		//Iterate over items in inventory.
+		for (var i = 0; i < inventoryList.length; i++)
+		{
+			var inventoryString = inventoryList[i];
+			if (inventoryString.includes(itemName))
+			{
+				foundItem = true;
+				
+				var count = parseInt(inventoryString.substring(inventoryString.indexOf("(") + 1, inventoryString.indexOf(")")));
+				
+				if (subtracts)
+				{
+					count -= quantity;
+				}
+				else
+				{
+					count = quantity;
+				}
+
+				if (count <= 0)
+				{
+					//Get rid of the entry in the list:
+					inventoryList.splice(i,  1);
+				}
+				else
+				{
+					inventoryList[i] = itemName + " (" + count + ")";
+				}
+
+				break;
+			}
+		}
+		
+		//If item was not found in inventory but we have some left.
+		if (subtracts == false && foundItem == false && quantity > 0)
+		{
+			//Add to inventory.
+			inventoryArray.push(itemName + " (" + quantity + ")");
+		}
+		
+		//Save inventory. 
+		inventoryStorage = inventoryList.join("<br />");
+		
+		if (inventoryList.length == 0 || (inventoryList.length == 1 && inventoryList[0] == ""))
+		{
+			inventoryStorage = "None";
+		}
+		
+		localStorage.setItem("inventory" + userName, inventoryStorage);
+	}
+	
 	//Pull from My Vampire page.
 	//TO-DO: comment more!
 	if (isMyVampView)
@@ -32,14 +144,14 @@ if (shouldSetUpNavigator)
 			}
 			if (child.nodeName == "#text" && child.data.indexOf("Possessions:") != -1)
 			{
-				var inventory = "";
+				var inventoryList = [];
 				
 				var list = borderDiv.childNodes[i+1];
 				for (var j = 0; j < list.children.length; j++)
 				{
 					var bulletPoint = list.children[j];
 					
-					inventory += "<br />" + bulletPoint.childNodes[0].data;
+					inventoryList.push(bulletPoint.childNodes[0].data);
 					
 					if (bulletPoint.childNodes[0].data.indexOf("Scroll of Accounting") != -1)
 					{
@@ -49,7 +161,7 @@ if (shouldSetUpNavigator)
 					}
 				}
 				
-				localStorage.setItem("inventory" + userName, inventory);
+				localStorage.setItem("inventory" + userName, inventoryList.join("<br />"));
 				
 				foundPossessions = true;
 			}
@@ -86,9 +198,15 @@ if (shouldSetUpNavigator)
 				var questLevel = getQuestLevel(quest.name);
 
 				var legsLeft = localStorage.getItem("questLegsLeft" + userName);
+				
+				if (legsLeft == null)
+				{
+					legsLeft = quest.legs[questLevel];
+				}
+				
 				var oldQuestName = localStorage.getItem("quest" + userName);
 				var oldQuestDescription = localStorage.getItem("questDescription" + userName);
-
+				
 				switch (quest.name)
 				{
 					case "Celerity":
@@ -127,13 +245,43 @@ if (shouldSetUpNavigator)
 							legsLeft--;
 						}
 
-						questDescription = "collect " + quest.legs[questLevel] + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
+						questDescription = "collect " + legsLeft + " items, travel--no transits--to " + pubName + " at " + intersectionNameX + " and " + intersectionNameY + " and buy a drink.";
 						break;
 					case "Charisma":
-						//questDescription = "persuade " + extractInBetween(questDescription, "Persuade ", " prestigious vampires") + " vampires with 500+ blood to visit " + extractInBetween(questDescription, "to visit ", " there and") + " and say \"" + extractInBetween(questDescription, "tell the bartender '", "'. You have ") + "\", without visiting the pub yourself.";
+						
+						// persuade 9 more vampires to to say you sent them in the pub at Sycamore and 89th. 9 days, 23 hours, 40 minutes remaining.
+						var pubLocation = extractInBetween(questDescription, " in the pub at ", ".");
+						var streetXName = extractInBetween(questDescription, " in the pub at ", " and ");
+						var streetYName = extractInBetween(questDescription, " and ", ".");
+						
+						for (var j = 0; j < pubArray.length; j++)
+						{
+							var pubData = pubArray[j];
+							var pubName = pubData[0];
+							var pubX = pubData[1];
+							var pubY = pubData[2];
+							var pubXName = streetArray[pubX / 2][1];
+							var pubYName = streetArray[pubY / 2][2];
+							
+							if (pubXName == streetXName && pubYName == streetYName)
+							{
+								pubLocation = pubName + " at " + streetXName + " and " + streetYName;
+							}
+						}
+						
+						//If we already have this quest, override the new quest description with information from the old quest description.
+						if (quest.name == oldQuestName && oldQuestDescription != null && oldQuestDescription.includes(" and say "))
+						{
+							questDescription = "persuade " + extractInBetween(questDescription, "persuade ", " more vampires") + " vampires with 500+ blood to visit " + pubLocation + " and say \"" + extractInBetween(oldQuestDescription, "and say \"", "\", without visiting") + "\", without visiting the pub yourself.";
+						}
+						else
+						{
+							questDescription = "persuade " + extractInBetween(questDescription, "persuade ", " more vampires") + " vampires with 500+ blood to visit " + pubLocation + ", without visiting the pub yourself.";
+						}
+						
 						break;
 					case "Locate":
-						//questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", " and say '") + " and say \"Check-Point\", ensuring you have 10 blood to spare.";
+						questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", ".") + " and say \"Check-Point\", ensuring you have " + [10, 15, 25][questLevel] + " blood to spare.";
 						break;
 					case "Stamina":
 						questDescription = "go to the NW corner of " + extractInBetween(questDescription, "the corner of ", ".") + " and say \"" + extractInBetween(questDescription, "say '", "' at the corner of") + "\", ensuring you have " + [500, 1000, 1500][questLevel] + " blood.";
@@ -147,7 +295,7 @@ if (shouldSetUpNavigator)
 						break;
 				}
 
-				recordQuest(quest.name, questDescription, Date.now() + deadlineDuration, legsLeft);
+				recordQuest(quest, questDescription, Date.now() + deadlineDuration, legsLeft);
 				
 				foundQuest = true;
 			}
@@ -155,7 +303,7 @@ if (shouldSetUpNavigator)
 		
 		if (foundPossessions == false)
 		{
-			localStorage.setItem("inventory" + userName, "<br />None");
+			localStorage.setItem("inventory" + userName, "None");
 		}
 		
 		if (foundQuest == false)
@@ -167,7 +315,8 @@ if (shouldSetUpNavigator)
 		}
 	}
 	
-	//Handler for pocket change after purchasing powers.
+	//Handler for pocket change and inventory after purchasing items and powers from shops.
+	//TO-DO: comment more!
 	for (var i = 0; i < forms.length; i++)
 	{
 		var form = forms[i];
@@ -196,15 +345,7 @@ if (shouldSetUpNavigator)
 				}
 			});
 		}
-	}
-	
-	//Handler for pocket change and inventory after purchasing items from shops.
-	//TO-DO: comment more!
-	for (var i = 0; i < forms.length; i++)
-	{
-		var form = forms[i];
-		
-		if (form.action.value == "shop" && form.t.value != "heal")
+		else if (form.action.value == "shop" && form.t.value != "heal")
 		{
 			var shopDiv = form.children[1];
 			
@@ -238,8 +379,6 @@ if (shouldSetUpNavigator)
 						var itemQuantity = parseInt(form.target.value);
 						
 						var coinsOn = parseInt(localStorage.getItem("coinsOn" + userName));
-						var inventory = localStorage.getItem("inventory" + userName);
-						var inventoryArray = (inventory == null) ? [] : inventory.split("<br />");
 						
 						//If able to afford.
 						if ((itemPrice * itemQuantity) <= coinsOn)
@@ -248,43 +387,37 @@ if (shouldSetUpNavigator)
 							coinsOn -= itemPrice * itemQuantity;
 							localStorage.setItem("coinsOn" + userName, coinsOn);
 							
-							var foundItem = false;
-							
-							//Iterate over items in inventory.
-							for (var k = 0; k < inventoryArray.length; k++)
-							{
-								var oldItemString = inventoryArray[k];
-								
-								//If item being purchased.
-								if (oldItemString.indexOf(itemName) != -1)
-								{
-									foundItem = true;
-									
-									//Add to quantity.
-									var oldQuantityString = oldItemString.substring(oldItemString.indexOf("(")+1, oldItemString.indexOf(")"));
-									var oldQuantity = parseInt(oldQuantityString);
-									itemQuantity += oldQuantity;
-									//var newQuantity = oldQuantity + itemQuantity;
-									inventoryArray[k] = itemName + " (" + itemQuantity + ")";
-								}
-							}
-							if (foundItem == false)
-							{
-								for (var k = 0; k < inventoryArray.length; k++)
-								{
-									if (inventoryArray[k] == "None")
-									{
-										inventoryArray.splice(k, 1);
-										k--;
-									}
-								}
-								//Add new item to inventory.
-								inventoryArray.push(itemName + " (" + itemQuantity + ")");
-							}
-							
-							//Save inventory.
-							localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+							addItem(itemName, itemQuantity);
 						}
+					}
+				}
+			});
+		}
+		else if (form.action.value == "transit")
+		{
+			var transitBalance = form.childNodes[form.childNodes.length-1];
+			var pocketString = transitBalance.data;
+			if (pocketString && pocketString.includes("You have"))
+			{
+				var coinsOn = pocketString.substring(pocketString.indexOf("You have ") + 9, pocketString.indexOf(".)"));
+				if (coinsOn == "no") coinsOn = "0";
+				if (coinsOn == "one") coinsOn = "1";
+				localStorage.setItem("coinsOn" + userName, coinsOn);
+			}
+			
+			form.children[2].addEventListener("click", function(event)
+			{
+				var oldQuestName = localStorage.getItem("quest" + userName);
+				if (oldQuestName == "Celerity")
+				{
+					if (confirm("Are you sure you want to use transit while on a Celerity quest?"))
+					{
+						// Carry on then.
+					}
+					else
+					{
+						event.preventDefault();
+						return false;
 					}
 				}
 			});
@@ -343,6 +476,10 @@ if (shouldSetUpNavigator)
 								//Figure if selling all or some of item in inventory.
 								var itemsLeft = inventoryQuantity - sellQuantity;
 							
+								removeItem(itemName, itemsLeft, false);
+							
+							
+								/*
 								var foundItem = false;
 							
 								//Iterate over items in inventory.
@@ -377,21 +514,17 @@ if (shouldSetUpNavigator)
 							
 								//Save inventory. 
 								localStorage.setItem("inventory" + userName, inventoryArray.join("<br />"));
+								
+								*/
 							}
 						}
 					}
 				});
 			}
 		}
-	}
-	
-	//Handler for pub
-	for (var i = 0; i < forms.length; i++)
-	{
-		var form = forms[i];
-		
-		if (form.action.value == "pub")
+		else if (form.action.value == "pub")
 		{
+			//Handler for pub
 			console.log("found a pub");
 			
 			var pubBalance = form.childNodes[form.childNodes.length-1];
@@ -403,6 +536,30 @@ if (shouldSetUpNavigator)
 				if (coinsOn == "one") coinsOn = "1";
 				localStorage.setItem("coinsOn" + userName, coinsOn);
 			}
+		}
+		else if (form.action.value == "use")
+		{
+			form.addEventListener("submit", function(event)
+			{
+				var form = event.target;
+
+				var itemNumber = parseInt(form.target.value);
+
+				var itemName = itemsByNumber[itemNumber];
+
+				if (itemName != null)
+				{
+					var quantity = 1;
+					
+					//Handle double garlic spray.
+					if (itemName == "Garlic Spray" && form.x && form.x.checked)
+					{
+						quantity = 2;
+					}
+					
+					removeItem(itemName, quantity, true);
+				}
+			});
 		}
 	}
 
@@ -455,22 +612,39 @@ if (shouldSetUpNavigator)
 	}
 	else
 	{
-		inventoryBox.innerHTML += "<span class = 'box-subtitle'>Inventory:</span> " + inventory;
+		inventoryBox.innerHTML += "<span class = 'box-subtitle'>Inventory:</span><br />" + inventory;
 	}
 	
 	inventoryBox.appendChild(inventoryLine);
-	var powers = localStorage.getItem("powers" + userName);
-	if (powers == null || powers == "")
+	
+	var powersStorage = localStorage.getItem("powers" + userName);
+	if (powersStorage != null)
+	{
+		// Clean up any extra <br/>s in the powers list, and then save it again:
+		var powersList = powersStorage.split("<br />");
+		for (var j = 0; j < powersList.length; j++)
+		{
+			if (powersList[j] == "")
+			{
+				powersList.splice(j, 1);
+				j--;
+			}
+		}
+		powersStorage = powersList.join("<br />");
+		localStorage.setItem("powers" + userName, powersStorage);
+	}
+	
+	if (powersStorage == null || powersStorage == "")
 	{
 		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> View your My Vampire page";
 	}
 	else
 	{
-		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> <br />" + powers;
+		powersBox.innerHTML += "<span class = 'box-subtitle'>Powers:</span> <br />" + powersStorage;
 	}
 	if (localStorage.getItem("questDeadline" + userName) != null)
 	{
-		powersBox.innerHTML += "<br />Quest: <br />";
+		powersBox.innerHTML += "<br /><br />Quest: <br />";
 		powersBox.innerHTML += localStorage.getItem("quest" + userName) + ": ";
 		powersBox.innerHTML += localStorage.getItem("questDescription" + userName) + "<br />";
 

@@ -8,14 +8,14 @@ var powers =
 	{name: "Shadows",    hasQuest: false, hasLevels:  true, prices: [1000, 2000, 4000],  gainCue: "You acquire a level of power SHADOWS."},
 	{name: "Stamina",    hasQuest:  true, hasLevels:  true, prices: [1000, 2500, 5000],  gainCue: null},
 	{name: "Suction",    hasQuest:  true, hasLevels: false, prices: [7500],              gainCue: null},
-	{name: "Surprise",   hasQuest: false, hasLevels: false, prices: [20000],             gainCue: null},
+	{name: "Surprise",   hasQuest: false, hasLevels: false, prices: [20000],             gainCue: "You acquire a level of power SURPRISE."},
 	{name: "Telepathy",  hasQuest: false, hasLevels:  true, prices: [2500, 5000, 10000], gainCue: "Intensive training, lasting several hours, leaves you feeling very tired."},
 	{name: "Thievery",   hasQuest: false, hasLevels:  true, prices: [2000, 5000, 10000], gainCue: "You acquire a level of power THIEVERY."},
 ];
 
 var quests =
 [
-	{name: "Celerity",   levels: 3, legs: [3, 6,12], days:  3, 
+	{name: "Celerity",   levels: 3, legs: [3, 6, 12], days:  3, 
 		startCue: ["To gain a level of CELERITY"], 
 		stepCue: "He tells you now must run to", 
 		endCue: "You feel something brush past your pocket.", 

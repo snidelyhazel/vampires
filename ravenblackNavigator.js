@@ -131,7 +131,7 @@ function getLoginIndex(username)
 }
 
 //If login is successful, save login.
-if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") == 1)
+if (isWelcomeView && !isLoginView && localStorage.getItem("loginBox") != "0")
 {
 	//Get value in ip cookie.
 	var currentLogin = getCookie("ip");
@@ -168,6 +168,96 @@ var vampsAttacked = readArrayFromLocalStorage("vampsAttacked" + userName, ",");
 //Create localStorage for contents of shopping cart. 
 var shoppingCart = readArrayFromLocalStorage("shoppingCart" + userName, ";");
 
+function makeTabs(storageName, tabList)
+{
+	var tabAreaDiv = document.createElement("div");
+	
+	//Create unordered list to contain tabs.
+	var tabulation = makeElement("<ul style='list-style: none; padding: 0; margin: 0; position: 0; font-size: 90%;'></ul>");
+	tabAreaDiv.appendChild(tabulation);
+	
+	//Create line to assist with display of active tab.
+	var line = makeElement("<div style='position: absolute; width: 100%; border: 0px solid; border-color: white; border-bottom-width: 1px; margin-top: -1px; padding: 5px 0 3px 0;'>&nbsp;</div>");
+	tabulation.appendChild(line);
+	
+	//Create border box to hold shop tab contents.
+	var tabPages = makeElement("<div class='border-box' style='border: 1px solid; border-top-width: 0px; clear: both;'></div>");
+	tabAreaDiv.appendChild(tabPages);
+	tabPages.style.width = "193px";
+	
+	//Displays active tab, setting to localStorage.
+	function selectTab(selectedTab)
+	{
+		//Removes bottom border from active tab.
+		for (var i = 0; i < tabulation.children.length; i++)
+		{
+			var tab = tabulation.children[i];
+			if (tab.firstChild.id == (selectedTab + "Anchor"))
+			{
+				tab.style.borderBottomWidth = "0px";
+				tab.style.paddingBottom = "4px";
+			}
+			else
+			{
+				tab.style.borderBottomWidth = "1px";
+				tab.style.paddingBottom = "3px";
+			}
+		}
+		
+		//Displays contents of active tab.
+		for (var i = 0; i < tabPages.children.length; i++)
+		{
+			var content = tabPages.children[i];
+			content.style.display = (content.id == selectedTab) ? "block" : "none";
+		}
+		
+		//Set up contents of active tab.
+		for (var i = 0; i < tabList.length; i++)
+		{
+			if (selectedTab == tabList[i].name)
+			{
+				tabList[i].display();
+				break;
+			}
+		}
+		
+		//Store active tab in localStorage.
+		localStorage.setItem(storageName, selectedTab);
+	}
+
+	function createTabTitle(title, name)
+	{
+		//Adds tab as a list item.
+		var tabTitle = makeElement("<li style='float: left; border: 1px solid; border-color: white; border-bottom-width: 0; margin: 0 5px 0 0; padding: 5px 5px 5px 5px; position: relative; background: black;'></li>");
+		tabulation.appendChild(tabTitle);
+
+		//Create anchor to link to tab contents.
+		var tabAnchor = makeElement("<a id='" + name + "Anchor' style='cursor: pointer; text-decoration: none;'>" + title + "</a>");
+		tabTitle.appendChild(tabAnchor);
+		tabAnchor.addEventListener("click", function(event)
+		{
+			selectTab(name);
+		});
+		
+		if (name == tabList[0].name)
+		{
+			tabTitle.style.paddingBottom = "4px";
+		}
+		if (name == tabList[1].name)
+		{
+			tabTitle.style.marginRight = "0px";
+			tabTitle.style.float = "right";
+		}
+	}
+	
+	for (var i = 0; i < tabList.length; i++)
+	{
+		createTabTitle(tabList[i].title, tabList[i].name);
+		tabPages.appendChild(tabList[i].content);
+	}
+		
+	return {div: tabAreaDiv, selectTab: selectTab};
+}
 
 
 
@@ -216,9 +306,10 @@ if (shouldSetUpNavigator)
 		header.appendChild(child);
 	}
 	
-	var useageAgreement = mainDiv.children[mainDiv.children.length-1];
+	var usageAgreement = mainDiv.children[mainDiv.children.length-1];
 	header.appendChild(document.createElement("br"));
-	header.appendChild(useageAgreement.children[0]);
+	header.appendChild(usageAgreement.children[0]);
+	mainDiv.removeChild(usageAgreement);
 	
 	//Remove footer with biterlink.
 	var textInfo = document.getElementsByClassName("spacey");
@@ -249,9 +340,9 @@ if (shouldSetUpNavigator)
 	//Create div container for checkbox.
 	var leftSideDiv = document.createElement("div");
 	//Put div above grid.
-	document.body.insertBefore(leftSideDiv, document.body.firstChild);
+	mainDiv.insertBefore(leftSideDiv, mainDiv.firstChild);
 	//Put div on left side.
-	leftSideDiv.style.float = "left";
+	//leftSideDiv.style.float = "left";
 	leftSideDiv.style.width = "150px";
 	
 	
@@ -260,9 +351,13 @@ if (shouldSetUpNavigator)
 	//Create div container for checkbox.
 	var rightSideDiv = document.createElement("div");
 	//Put div above grid.
-	document.body.insertBefore(rightSideDiv, document.body.firstChild);
+	mainDiv.appendChild(rightSideDiv);
 	//Put div on right side.
-	rightSideDiv.style.float = "right";
+	//rightSideDiv.style.float = "right";
 	//Define position of div container.
 	rightSideDiv.style.position = "relative";
+	
+	mainDiv.style.display = "flex";
+	mainDiv.style.justifyContent = "space-between";
+	mainDiv.style.width = "100%";
 }

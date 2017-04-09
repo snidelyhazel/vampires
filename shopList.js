@@ -344,3 +344,84 @@ Lair
 
 
 */
+
+var itemsByNumber = [];
+
+itemsByNumber[0] = "Scroll of Turning";
+itemsByNumber[1] = "Scroll of Teleportation";
+itemsByNumber[2] = "Scroll of Displacement";
+itemsByNumber[3] = "Scroll of Succour";
+itemsByNumber[4] = "Scroll of Accounting";
+itemsByNumber[5] = "Scroll of Summoning";
+itemsByNumber[6] = "Scroll of Bondage";
+
+itemsByNumber[32] = "Vial of Holy Water";
+itemsByNumber[33] = "Garlic Spray";
+itemsByNumber[34] = "Sprint Potion";
+itemsByNumber[35] = "Blood Potion" ;
+
+itemsByNumber[64] = "Wooden Stake";
+itemsByNumber[66] = "UV Grenade";
+
+itemsByNumber[92] = "Diamond Ring";
+itemsByNumber[93] = "Perfect Dandelion";
+itemsByNumber[94] = "Perfect Black Orchid";
+itemsByNumber[95] = "Perfect Red Rose";
+
+itemsByNumber[98] = "Perfect Ixora Cluster";
+itemsByNumber[99] = "Gold Dawn to Dusk Tulip";
+
+itemsByNumber[93] = "Perfect Dandelion";
+
+itemsByNumber[103] = "Dandelion";
+
+itemsByNumber[113] = "Wilted Dandelion";
+
+itemsByNumber[200] = "Necklace With Locket";
+itemsByNumber[201] = "Golden Ring";
+itemsByNumber[202] = "Amulet of Insidious Illusions";
+itemsByNumber[203] = "Titanium-platinum ring";
+itemsByNumber[204] = "Flask of Heinous Deceptions";
+itemsByNumber[205] = "Safety deposit box key";
+
+itemsByNumber[210] = "Kitten";
+itemsByNumber[211] = "Crystal Music Box";
+itemsByNumber[212] = "Silver Ruby Dagger";
+itemsByNumber[213] = "Onyx Coffin";
+itemsByNumber[214] = "Diamond Succubus Earrings";
+itemsByNumber[215] = "Book of Spells";
+itemsByNumber[216] = "Platinum Puzzle Rings";
+
+itemsByNumber[220] = "Candy cane";
+itemsByNumber[221] = "Chocolate Ghost";
+
+itemsByNumber[225] = "Memorial Candle";
+
+itemsByNumber[231] = "Wolf Pup";
+itemsByNumber[232] = "Dragon's Egg";
+itemsByNumber[233] = "Silver Pocket Watch";
+itemsByNumber[234] = "Hand Mirror of Truth";
+itemsByNumber[235] = "Ritual Gown";
+
+itemsByNumber[237] = "Pewter Celtic Cross";
+itemsByNumber[238] = "Compass";
+itemsByNumber[239] = "Pewter Tankard";
+
+
+
+/*
+Drink numbers:
+0 Human
+1 Human (Vampire Hunter)
+11 Scroll of Teleportation
+12 Scroll of Displacement
+42 Holy Water
+43 Garlic Spray
+100 bag of coins
+103 Perfect Dandelion
+
+add 10?
+itemsByNumber[0] = "Scroll of Turning";
+itemsByNumber[32] = "Vial of Holy Water";
+*/
+

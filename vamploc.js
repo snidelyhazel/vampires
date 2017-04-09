@@ -123,7 +123,7 @@ if (shouldSetUpNavigator)
 		return nearestVampList;
 	}
 	
-	//Create a button to find nearest pubs.
+	//Create a button to find nearest vampires.
 	var findVampsButton = document.createElement("button");
 	findVampsButton.innerHTML = "Find vamps in vicinity";
 	vampLocatorDiv.appendChild(findVampsButton);
