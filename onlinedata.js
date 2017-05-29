@@ -37,8 +37,8 @@ if (shouldSetUpNavigator)
 	var lastUpdatedShopsAndGuilds = parseInt(localStorage.getItem("lastUpdatedShopsAndGuilds"));
 	if (isNaN(lastUpdatedShopsAndGuilds)) lastUpdatedShopsAndGuilds = 0;
 	
-	// If the list of shops and guilds is more than ten minutes old, update it.
-	if (currentTime - lastUpdatedShopsAndGuilds > 1000 * 60 * 10)
+	// If the list of shops and guilds is more than five minutes old, update it.
+	if (currentTime - lastUpdatedShopsAndGuilds > 1000 * 60 * 5)
 	{
 		syncMovingPlaces();
 	}

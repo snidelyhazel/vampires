@@ -52,12 +52,20 @@ for (var i = 0; i < forms.length; i++)
 {
 	if (forms[i].action.value == "setpass") isSetPasswordView = true;
 }
+var isGraveyard = false;
 
-
-var userString = secondSpacey.childNodes[0].data;
+var secondSpaceyChild = secondSpacey.childNodes[0];
+var userString = "";
+if (secondSpaceyChild.nodeType == 3)
+{
+	userString = secondSpacey.childNodes[0].data;
+}
+else if (secondSpaceyChild.nodeType == 1 && secondSpaceyChild.nodeName == "B")
+{
+	isGraveyard = true;
+	userString = secondSpaceyChild.childNodes[0].data;
+}
 var userName = userString.substring(userString.indexOf("You are the vampire ") + 20, userString.indexOf(" (if this is not you"));
-
-
 
 
 //	+ Multiple login support
@@ -314,6 +322,11 @@ if (shouldSetUpNavigator)
 	//Remove footer with biterlink.
 	var textInfo = document.getElementsByClassName("spacey");
 	var footer = textInfo[textInfo.length-1];
+	
+	if (isGraveyard)
+	{
+		footer = footer.firstChild;
+	}
 	for ( ; ; ) //infinite loooop!
 	{
 		var child = footer.lastChild;
@@ -325,7 +338,7 @@ if (shouldSetUpNavigator)
 		}
 		
 		footer.removeChild(child);
-		if (child.innerHTML == "Click here for more detail") break;		
+		if (child.innerHTML == "Click here for more detail") break;
 	}
 	
 	//Move header info below grid.
