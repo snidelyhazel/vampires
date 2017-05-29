@@ -1,5 +1,5 @@
 Welcome to the Ravenblack Navigator!
-Citywide Beta version 0.8
+Citywide Beta version 0.8.1
 
 Feature list:
 	+ Multiple login support

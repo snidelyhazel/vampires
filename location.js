@@ -171,10 +171,14 @@ if (shouldSetUpNavigator)
 	}
 	if (localStorage.getItem("quest" + userName) == "Charisma")
 	{
+		var questDescription = localStorage.getItem("questDescription" + userName);
+		
+		var charPubName = extractInBetween(questDescription, "to visit ", " at ");
+		
 		for (var i = 0; i < pubArray.length; i++)
 		{
 			var pub = pubArray[i];
-			if (pub[1] >= currentX - 1 && pub[1] <= currentX + 1 && pub[2] >= currentY - 1 && pub[2] <= currentY + 1)
+			if (pub[0] == charPubName && pub[1] >= currentX - 1 && pub[1] <= currentX + 1 && pub[2] >= currentY - 1 && pub[2] <= currentY + 1)
 			{
 				window.alert("You are currently on a Charisma quest. Entering this pub will cause you to fail. Please stay away.");
 				
